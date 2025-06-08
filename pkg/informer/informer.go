@@ -49,7 +49,7 @@ func StartDeploymentInformer(ctx context.Context, clientset *kubernetes.Clientse
 	<-ctx.Done() // Block until context is cancelled
 }
 
-func getDeploymentName(obj interface{}) string {
+func getDeploymentName(obj any) string {
 	if d, ok := obj.(metav1.Object); ok {
 		return d.GetName()
 	}

@@ -24,11 +24,6 @@ var serverCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		level := parseLogLevel(logLevel)
 		configureLogger(level)
-		log.Info().Msg("This is an info log")
-		log.Debug().Msg("This is a debug log")
-		log.Trace().Msg("This is a trace log")
-		log.Warn().Msg("This is a warn log")
-		log.Error().Msg("This is an error log")
 		clientset, err := getServerKubeClient(serverKubeconfig, serverInCluster)
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to create Kubernetes client")
