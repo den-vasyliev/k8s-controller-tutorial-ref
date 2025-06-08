@@ -132,4 +132,29 @@ git commit -m "step7: add informer command for Kubernetes deployments using clie
 
 ---
 
+## Step 8: /deployments JSON API Endpoint
+
+- Added a `/deployments` endpoint to the FastHTTP server.
+- Returns a JSON array of deployment names from the informer's cache (default namespace).
+- Uses the informer's local cache, not a live API call.
+
+**Usage:**
+```sh
+curl http://localhost:8080/deployments
+# Output: ["deployment1","deployment2",...]
+```
+
+**What it does:**
+- Serves a JSON array of deployment names currently in the informer cache.
+- Does not query the Kubernetes API directly for each request (fast, efficient).
+
+**Command history:**
+```sh
+# updated pkg/informer/informer.go, cmd/server.go
+git add .
+git commit -m "step8: add /deployments JSON API endpoint to server using informer cache"
+```
+
+---
+
 Continue to the next steps for more advanced Kubernetes and controller features! 
