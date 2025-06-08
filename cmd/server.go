@@ -33,7 +33,25 @@ var serverCmd = &cobra.Command{
 		go informer.StartDeploymentInformer(ctx, clientset)
 
 		handler := func(ctx *fasthttp.RequestCtx) {
-			fmt.Fprintf(ctx, "Hello from FastHTTP!")
+			switch string(ctx.Path()) {
+			case "/deployments":
+				ctx.Response.Header.Set("Content-Type", "application/json")
+				deployments := informer.GetDeploymentNames()
+				ctx.SetStatusCode(200)
+				ctx.Write([]byte("["))
+				for i, name := range deployments {
+					ctx.WriteString("\"")
+					ctx.WriteString(name)
+					ctx.WriteString("\"")
+					if i < len(deployments)-1 {
+						ctx.WriteString(",")
+					}
+				}
+				ctx.Write([]byte("]"))
+				return
+			default:
+				fmt.Fprintf(ctx, "Hello from FastHTTP!")
+			}
 		}
 		addr := fmt.Sprintf(":%d", serverPort)
 		log.Info().Msgf("Starting FastHTTP server on %s", addr)
