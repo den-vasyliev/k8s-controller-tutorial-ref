@@ -132,4 +132,29 @@ git commit -m "step7: add informer command for Kubernetes deployments using clie
 
 ---
 
+## Step 9: controller-runtime Deployment Controller
+
+- Integrated [controller-runtime](https://github.com/kubernetes-sigs/controller-runtime) into the project.
+- Added a deployment controller that logs each reconcile event for Deployments in the default namespace.
+- The controller is started alongside the FastHTTP server.
+
+**What it does:**
+- Uses controller-runtime's manager to run a controller for Deployments.
+- Logs every reconcile event (creation, update, deletion) for Deployments.
+
+**Usage:**
+```sh
+go run main.go server --kubeconfig ~/.kube/config
+```
+
+**Command history:**
+```sh
+go get sigs.k8s.io/controller-runtime@v0.16.3
+# created pkg/ctrl/deployment_controller.go, updated cmd/server.go
+git add .
+git commit -m "step9: integrate controller-runtime manager and deployment controller, log reconcile events"
+```
+
+---
+
 Continue to the next steps for more advanced Kubernetes and controller features! 
