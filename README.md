@@ -185,4 +185,42 @@ git commit -m "step10: add leader election and metrics flags to controller-runti
 
 ---
 
+## Step 11: FrontendPage CRD and Advanced Controller Implementation
+
+- Added the Go type for the FrontendPage custom resource in `pkg/apis/frontend/v1alpha1/frontendpage_types.go`.
+- Created `groupversion_info.go` to define the group, version, and scheme for the CRD.
+- Used [controller-gen](https://github.com/kubernetes-sigs/controller-tools) to generate CRD manifests and deepcopy code.
+- Implemented a controller for the FrontendPage CRD using controller-runtime in `pkg/ctrl/frontendpage_controller.go`.
+- The controller watches FrontendPage resources and manages both a Deployment and a ConfigMap:
+  - Creates/updates a ConfigMap containing the `spec.contents` from the FrontendPage CR.
+  - Creates/updates a Deployment that mounts the ConfigMap as a volume and uses the image/replicas from the CR spec.
+  - Cleans up both the Deployment and ConfigMap when the FrontendPage is deleted.
+- Registered the controller with the manager in `cmd/server.go`.
+
+**What it does:**
+- Defines the FrontendPage CRD structure and registers it with the Kubernetes API machinery.
+- Generates the CRD YAML and deepcopy methods required for Kubernetes controllers.
+- Reconciles FrontendPage resources to ensure a matching Deployment and ConfigMap exist in the cluster.
+- Updates the Deployment and ConfigMap if the FrontendPage spec changes.
+- Handles creation, update, and cleanup logic for Deployments and ConfigMaps owned by FrontendPage resources.
+
+**Command history:**
+```sh
+# Add Go types and group version info for FrontendPage
+# (edit pkg/apis/frontend/v1alpha1/frontendpage_types.go and groupversion_info.go)
+
+# Run controller-gen to generate CRD and deepcopy code
+controller-gen crd:crdVersions=v1 paths=./pkg/apis/... output:crd:dir=./config/crd object paths=./pkg/apis/...
+
+# Scaffold and implement the advanced FrontendPage controller
+mkdir -p pkg/ctrl
+# created pkg/ctrl/frontendpage_controller.go and implemented controller logic for Deployment and ConfigMap management
+# registered the controller in cmd/server.go
+
+# Run the server to start the controller
+make run
+```
+
+---
+
 Continue to the next steps for more advanced Kubernetes and controller features! 
