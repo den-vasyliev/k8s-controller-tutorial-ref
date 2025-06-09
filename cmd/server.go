@@ -17,6 +17,8 @@ import (
 var serverPort int
 var serverKubeconfig string
 var serverInCluster bool
+var enableMCP bool
+var mcpPort int
 
 var serverCmd = &cobra.Command{
 	Use:   "server",
@@ -59,6 +61,17 @@ var serverCmd = &cobra.Command{
 			log.Error().Err(err).Msg("Error starting FastHTTP server")
 			os.Exit(1)
 		}
+
+		if enableMCP {
+			go func() {
+				mcpServer := NewMCPServer("K8s Controller MCP", appVersion)
+				addr := fmt.Sprintf(":%d", mcpPort)
+				log.Info().Msgf("Starting MCP server on %s", addr)
+				if err := server.ServeTCP(mcpServer, addr); err != nil {
+					log.Error().Err(err).Msg("MCP server exited with error")
+				}
+			}()
+		}
 	},
 }
 
@@ -81,4 +94,9 @@ func init() {
 	serverCmd.Flags().IntVar(&serverPort, "port", 8080, "Port to run the server on")
 	serverCmd.Flags().StringVar(&serverKubeconfig, "kubeconfig", "", "Path to the kubeconfig file")
 	serverCmd.Flags().BoolVar(&serverInCluster, "in-cluster", false, "Use in-cluster Kubernetes config")
+	serverCmd.Flags().BoolVar(&enableLeaderElection, "enable-leader-election", true, "Enable leader election for controller manager")
+	serverCmd.Flags().IntVar(&metricsPort, "metrics-port", 8081, "Port for controller manager metrics")
+	serverCmd.Flags().BoolVar(&enableMCP, "enable-mcp", false, "Enable MCP server")
+	serverCmd.Flags().IntVar(&mcpPort, "mcp-port", 9090, "Port for MCP server")
+	rootFlags.MetricsBindAddress = fmt.Sprintf(":%d", metricsPort)
 }
