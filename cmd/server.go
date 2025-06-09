@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/buaazp/fasthttprouter"
+	mcpserver "github.com/mark3labs/mcp-go/server"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/valyala/fasthttp"
@@ -103,12 +104,15 @@ var serverCmd = &cobra.Command{
 		if enableMCP {
 			go func() {
 				mcpServer := NewMCPServer("K8s Controller MCP", appVersion)
-				addr := fmt.Sprintf(":%d", mcpPort)
-				log.Info().Msgf("Starting MCP server on %s", addr)
-				if err := server.ServeTCP(mcpServer, addr); err != nil {
-					log.Error().Err(err).Msg("MCP server exited with error")
+				sseServer := mcpserver.NewSSEServer(mcpServer,
+					mcpserver.WithBaseURL(fmt.Sprintf("http://:%d", mcpPort)),
+				)
+				log.Info().Msgf("Starting MCP server in SSE mode on port %d", mcpPort)
+				if err := sseServer.Start(fmt.Sprintf(":%d", mcpPort)); err != nil {
+					log.Fatal().Err(err).Msg("MCP SSE server error")
 				}
 			}()
+			log.Info().Msgf("MCP server ready on port %d", mcpPort)
 		}
 
 		addr := fmt.Sprintf(":%d", serverPort)
