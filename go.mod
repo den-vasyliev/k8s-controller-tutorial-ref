@@ -5,6 +5,7 @@ go 1.24.2
 require (
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/cobra v1.9.1
+	github.com/stretchr/testify v1.10.0
 	github.com/valyala/fasthttp v1.50.0
 	k8s.io/api v0.29.0
 	k8s.io/apimachinery v0.29.0
@@ -23,7 +24,7 @@ require (
 	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
-	github.com/go-openapi/swag v0.22.3 // indirect
+	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
@@ -61,7 +62,6 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.28.3 // indirect
 	k8s.io/component-base v0.28.3 // indirect
