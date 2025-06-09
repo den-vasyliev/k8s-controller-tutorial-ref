@@ -1,22 +1,26 @@
-# MCP Integration
+# JWT Authentication
 
-- Integrated [MCP (Multi-Cluster Platform)](https://github.com/mark3labs/mcp-go) server into the project.
-- MCP server can be enabled with the `--enable-mcp` flag and runs on a configurable port (default: 9090).
-- MCP server runs alongside the FastHTTP API server and controller-runtime manager.
-- Provides a real-time event stream and management interface for Kubernetes resources via the MCP protocol.
+- Added JWT authentication middleware to protect all `/api/frontendpages` endpoints.
+- Only requests with a valid JWT in the `Authorization: Bearer <token>` header are allowed.
+- Added a `/api/token` endpoint for local testing, which issues a JWT for a test user (valid for 1 hour).
+- Uses a hardcoded secret for development (update for production use).
 
 **Usage:**
 ```sh
-git switch feature/step13-mcp-integration 
+git switch feature/step14-jwt-auth
+go run main.go --log-level trace --kubeconfig  ~/.kube/config server
+# Obtain a JWT token (for dev/testing)
+curl -X POST http://localhost:8080/api/token
+# Response: {"token":"<JWT>"}
 
-go run main.go server --log-level trace --enable-mcp --mcp-port 9090
-# MCP server will be available on http://localhost:9090
+# Use the token to access protected endpoints
+TOKEN=$(curl -s -X POST http://localhost:8080/api/token | jq -r .token)
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/frontendpages
 ```
-- Use an MCP client or compatible tool to connect and invoke registered tools.
 
 **What it does:**
-- Enables external systems to interact with the controller via the MCP protocol (list/create FrontendPages, etc.).
-- SSE mode provides real-time updates for tool execution.
+- Secures the platform API with JWT authentication.
+- Provides a simple way to test authentication locally.
 
 ---
 
@@ -37,6 +41,7 @@ go run main.go server --log-level trace --enable-mcp --mcp-port 9090
 - `pkg/apis` - CRD types and deepcopy
 - `pkg/api` - API for PE integration
 - `cmd/mcp.go` - MCP implementation
+- `pkg/api/jwt*` - API jwt implementation
 
 ## License
 
