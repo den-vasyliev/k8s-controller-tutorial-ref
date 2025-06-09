@@ -68,20 +68,22 @@ git checkout -b step3-pflag-loglevel
 
 ---
 
-## Step 4: FastHTTP Server Command
+## Step 4: FastHTTP Server Command with Log Level Flag
 
 - Added a new `server` command using [fasthttp](https://github.com/valyala/fasthttp).
 - The command starts a FastHTTP server with a configurable port (default: 8080).
+- Supports the `--log-level` flag for controlling log verbosity.
 - Uses zerolog for logging.
 
 **Usage:**
 ```sh
-go run main.go server --port 8080
+go run main.go server --port 8080 --log-level debug
 ```
 
 **What it does:**
 - Starts a FastHTTP server on the specified port.
 - Responds with "Hello from FastHTTP!" to any request.
+- Respects the log level set by the `--log-level` flag.
 
 **Command history:**
 ```sh
@@ -126,27 +128,16 @@ git commit -m "step6: add list command for Kubernetes deployments using client-g
 
 ## Step 7: Deployment Informer with client-go
 
-- Added a new `informer` command using [k8s.io/client-go](https://github.com/kubernetes/client-go).
-- Runs a shared informer for Deployments in the default namespace.
-- Supports both kubeconfig and in-cluster authentication (flags: `--kubeconfig`, `--in-cluster`).
+- Added a Go function to start a shared informer for Deployments in the default namespace using [k8s.io/client-go](https://github.com/kubernetes/client-go).
+- The function supports both kubeconfig and in-cluster authentication:
+  - If inCluster is true, uses in-cluster config.
+  - If kubeconfig is set, uses the provided path.
+  - One of these must be set; there is no default to `~/.kube/config`.
 - Logs add, update, and delete events for Deployments using zerolog.
-
-**Usage:**
-```sh
-go run main.go informer --kubeconfig ~/.kube/config
-go run main.go informer --in-cluster
-```
 
 **What it does:**
 - Connects to the Kubernetes cluster using the provided kubeconfig file or in-cluster config.
 - Watches for Deployment events (add, update, delete) in the `default` namespace and logs them.
-
-**Command history:**
-```sh
-# created cmd/informer.go, added informer command
-git add .
-git commit -m "step7: add informer command for Kubernetes deployments using client-go"
-```
 
 ---
 

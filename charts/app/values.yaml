@@ -1,0 +1,4 @@
+image:
+  repository: ghcr.io/REPLACE_ME/app
+  tag: "0.0.0" # This is set by CI to the Git tag or commit SHA
+  pullPolicy: IfNotPresent 
