@@ -38,10 +38,11 @@ test: envtest
 	go install gotest.tools/gotestsum@latest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use --bin-dir $(LOCALBIN) -p path)" gotestsum --junitfile report.xml --format testname ./... ${TEST_ARGS}
 
-test-coverage:
-	@echo "Running tests with coverage..."
-	go test -coverprofile=coverage.out -covermode=atomic ./...
-	@echo "Coverage report generated at coverage.out"
+test-coverage: envtest
+	go install github.com/boumenot/gocover-cobertura@latest
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use --bin-dir $(LOCALBIN) -p path)" go test -coverprofile=coverage.out -covermode=count ./...
+	go tool cover -func=coverage.out
+	gocover-cobertura < coverage.out > coverage.xml
 
 run:
 	go run main.go
