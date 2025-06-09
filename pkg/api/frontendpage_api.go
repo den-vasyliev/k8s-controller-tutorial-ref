@@ -18,12 +18,28 @@ type FrontendPageAPI struct {
 	Namespace string // default namespace for simplicity
 }
 
+// --- Swagger-only structs for documentation ---
+// FrontendPageDoc is a simplified version for Swagger docs
+// @Description FrontendPage resource (Swagger only)
+type FrontendPageDoc struct {
+	Name     string `json:"name" example:"example-page"`
+	Contents string `json:"contents" example:"<h1>Hello</h1>"`
+	Image    string `json:"image" example:"nginx:latest"`
+	Replicas int    `json:"replicas" example:"2"`
+}
+
+// FrontendPageListDoc is a list of FrontendPageDoc
+// @Description List of FrontendPage resources (Swagger only)
+type FrontendPageListDoc struct {
+	Items []FrontendPageDoc `json:"items"`
+}
+
 // ListFrontendPages godoc
 // @Summary List all FrontendPages
 // @Description Get all FrontendPage resources
 // @Tags frontendpages
 // @Produce json
-// @Success 200 {array} frontendv1alpha1.FrontendPage
+// @Success 200 {object} FrontendPageListDoc
 // @Router /api/frontendpages [get]
 func (api *FrontendPageAPI) ListFrontendPages(ctx *fasthttp.RequestCtx) {
 	list := &frontendv1alpha1.FrontendPageList{}
@@ -43,7 +59,7 @@ func (api *FrontendPageAPI) ListFrontendPages(ctx *fasthttp.RequestCtx) {
 // @Tags frontendpages
 // @Produce json
 // @Param name path string true "FrontendPage name"
-// @Success 200 {object} frontendv1alpha1.FrontendPage
+// @Success 200 {object} FrontendPageDoc
 // @Failure 404 {object} map[string]string
 // @Router /api/frontendpages/{name} [get]
 func (api *FrontendPageAPI) GetFrontendPage(ctx *fasthttp.RequestCtx) {
@@ -65,8 +81,8 @@ func (api *FrontendPageAPI) GetFrontendPage(ctx *fasthttp.RequestCtx) {
 // @Tags frontendpages
 // @Accept json
 // @Produce json
-// @Param body body frontendv1alpha1.FrontendPage true "FrontendPage object"
-// @Success 201 {object} frontendv1alpha1.FrontendPage
+// @Param body body FrontendPageDoc true "FrontendPage object"
+// @Success 201 {object} FrontendPageDoc
 // @Failure 400 {object} map[string]string
 // @Router /api/frontendpages [post]
 func (api *FrontendPageAPI) CreateFrontendPage(ctx *fasthttp.RequestCtx) {
@@ -93,8 +109,8 @@ func (api *FrontendPageAPI) CreateFrontendPage(ctx *fasthttp.RequestCtx) {
 // @Accept json
 // @Produce json
 // @Param name path string true "FrontendPage name"
-// @Param body body frontendv1alpha1.FrontendPage true "FrontendPage object"
-// @Success 200 {object} frontendv1alpha1.FrontendPage
+// @Param body body FrontendPageDoc true "FrontendPage object"
+// @Success 200 {object} FrontendPageDoc
 // @Failure 400 {object} map[string]string
 // @Router /api/frontendpages/{name} [put]
 func (api *FrontendPageAPI) UpdateFrontendPage(ctx *fasthttp.RequestCtx) {
