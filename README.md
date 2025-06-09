@@ -1,23 +1,24 @@
-# Deployment Informer with client-go
+# /deployments JSON API Endpoint
 
-- Added a Go function to start a shared informer for Deployments in the default namespace using [k8s.io/client-go](https://github.com/kubernetes/client-go).
-- The function supports both kubeconfig and in-cluster authentication:
-  - If inCluster is true, uses in-cluster config.
-  - If kubeconfig is set, uses the provided path.
-  - One of these must be set; there is no default to `~/.kube/config`.
-- Logs add, update, and delete events for Deployments using zerolog.
+- Added a `/deployments` endpoint to the FastHTTP server.
+- Returns a JSON array of deployment names from the informer's cache (default namespace).
+- Uses the informer's local cache, not a live API call.
 
 **Usage:**
-```bash
-git switch feature/step7-informer
+```sh
+git switch feature/step8-api-handler
+
 go run main.go --log-level trace --kubeconfig ~/.kube/config server
+
+curl http://localhost:8080/deployments
+# Output: ["deployment1","deployment2",...]
 ```
+
 **What it does:**
-- Connects to the Kubernetes cluster using the provided kubeconfig file or in-cluster config.
-- Watches for Deployment events (add, update, delete) in the `default` namespace and logs them.
+- Serves a JSON array of deployment names currently in the informer cache.
+- Does not query the Kubernetes API directly for each request (fast, efficient).
 
 ---
-
 ## Project Structure
 
 - `cmd/` — Contains your CLI commands.
