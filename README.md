@@ -4,6 +4,24 @@ This project is a step-by-step tutorial for DevOps and SRE engineers to learn ab
 
 ---
 
+## Running Tests
+
+This project uses [envtest](https://book.kubebuilder.io/reference/envtest.html) and [gotestsum](https://github.com/gotestyourself/gotestsum) for robust, CI-friendly testing.
+
+- To run all tests:
+  ```sh
+  make test
+  ```
+  This will automatically download the required Kubernetes API server binaries, set up envtest, and run all tests with gotestsum. A JUnit XML report will be generated as `report.xml`.
+
+- To run tests with coverage:
+  ```sh
+  make test-coverage
+  ```
+  This will generate a coverage report as `coverage.out`.
+
+---
+
 ## Step 1: Golang CLI Application using Cobra
 
 - Initialized a new CLI application using [cobra-cli](https://github.com/spf13/cobra).
