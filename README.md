@@ -1,22 +1,19 @@
-# /deployments JSON API Endpoint
+# controller-runtime Deployment Controller
 
-- Added a `/deployments` endpoint to the FastHTTP server.
-- Returns a JSON array of deployment names from the informer's cache (default namespace).
-- Uses the informer's local cache, not a live API call.
+- Integrated [controller-runtime](https://github.com/kubernetes-sigs/controller-runtime) into the project.
+- Added a deployment controller that logs each reconcile event for Deployments in the default namespace.
+- The controller is started alongside the FastHTTP server.
+
+**What it does:**
+- Uses controller-runtime's manager to run a controller for Deployments.
+- Logs every reconcile event (creation, update, deletion) for Deployments.
 
 **Usage:**
 ```sh
-git switch feature/step8-api-handler
+git switch feature/step9-controller-runtime
 
-go run main.go --log-level trace --kubeconfig ~/.kube/config server
-
-curl http://localhost:8080/deployments
-# Output: ["deployment1","deployment2",...]
+go run main.go --log-level trace --kubeconfig  ~/.kube/config server
 ```
-
-**What it does:**
-- Serves a JSON array of deployment names currently in the informer cache.
-- Does not query the Kubernetes API directly for each request (fast, efficient).
 
 ---
 ## Project Structure
@@ -31,6 +28,7 @@ curl http://localhost:8080/deployments
 - `charts/app` - helm chart
 - `pkg/informer` - informer implementation
 - `pkg/testutil` - envtest kit
+- `pkg/ctrl` - controller implementation
 
 ## License
 
