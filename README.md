@@ -10,6 +10,7 @@ This step introduces the Makefile for build automation, a distroless Dockerfile 
 - `Makefile` — Build automation tasks.
 - `Dockerfile` — Distroless Dockerfile for secure containerization.
 - `.github/workflows/` — GitHub Actions workflows for CI/CD.
+- `charts/app` - helm chart
 
 ## License
 
