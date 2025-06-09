@@ -189,15 +189,7 @@ This feature improves observability and debugging for all API endpoints.
 
 **Usage:**
 ```sh
-go run main.go server --kubeconfig ~/.kube/config
-```
-
-**Command history:**
-```sh
-go get sigs.k8s.io/controller-runtime@v0.16.3
-# created pkg/ctrl/deployment_controller.go, updated cmd/server.go
-git add .
-git commit -m "step9: integrate controller-runtime manager and deployment controller, log reconcile events"
+go run main.go --log-level trace --kubeconfig  ~/.kube/config server
 ```
 
 ---
