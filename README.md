@@ -1,6 +1,5 @@
-# k8s-controller-tutorial
+# 2. **Add zerolog for structured logging:**
 
-2. **Add zerolog for structured logging:**
    Integrate [zerolog](https://github.com/rs/zerolog) to enable structured logging with support for log levels: info, debug, trace, warn, and error.
    
    Install zerolog:
