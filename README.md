@@ -1,47 +1,29 @@
-# FrontendPage CRD and Advanced Controller Implementation
+# Platform API (CRUD + Swagger)
 
-- Added the Go type for the FrontendPage custom resource in `pkg/apis/frontend/v1alpha1/frontendpage_types.go`.
-- Created `groupversion_info.go` to define the group, version, and scheme for the CRD.
-- Used [controller-gen](https://github.com/kubernetes-sigs/controller-tools) to generate CRD manifests and deepcopy code.
-- Implemented a controller for the FrontendPage CRD using controller-runtime in `pkg/ctrl/frontendpage_controller.go`.
-- The controller watches FrontendPage resources and manages both a Deployment and a ConfigMap:
-  - Creates/updates a ConfigMap containing the `spec.contents` from the FrontendPage CR.
-  - Creates/updates a Deployment that mounts the ConfigMap as a volume and uses the image/replicas from the CR spec.
-  - Cleans up both the Deployment and ConfigMap when the FrontendPage is deleted.
-- Registered and started the controller with the manager in `cmd/server.go`:
-
-```go
-if err := ctrl.SetupFrontendPageController(mgr); err != nil {
-    log.Error().Err(err).Msg("Failed to add FrontendPage controller")
-    os.Exit(1)
-}
-```
-
-**What it does:**
-- Defines the FrontendPage CRD structure and registers it with the Kubernetes API machinery.
-- Generates the CRD YAML and deepcopy methods required for Kubernetes controllers.
-- Reconciles FrontendPage resources to ensure a matching Deployment and ConfigMap exist in the cluster.
-- Updates the Deployment and ConfigMap if the FrontendPage spec changes.
-- Handles creation, update, and cleanup logic for Deployments and ConfigMaps owned by FrontendPage resources.
+- Added RESTful CRUD API endpoints for the FrontendPage CRD using FastHTTP and fasthttprouter.
+- API handlers use the controller-runtime client to create, update, delete, and list FrontendPage resources in Kubernetes, triggering reconciliation.
+- Integrated [Swagger](https://swagger.io/) documentation and served Swagger UI for easy API exploration.
+- All API endpoints are under `/api/frontendpages`.
 
 **Usage:**
 ```sh
-git switch feature/step11-frontendpage-crd 
-# Add Go types and group version info for FrontendPage (done already)
-# (edit pkg/apis/frontend/v1alpha1/frontendpage_types.go and groupversion_info.go) (done already)
-
-# Run controller-gen to generate CRD and deepcopy code
-controller-gen crd:crdVersions=v1 paths=./pkg/apis/... output:crd:dir=./config/crd object paths=./pkg/apis/...
-
-# Scaffold and implement the advanced FrontendPage controller
-# created pkg/ctrl/frontendpage_controller.go and implemented controller logic for Deployment and ConfigMap management
-# registered the controller in cmd/server.go
-
-# Run the server to start the controller
+git switch feature/step12-platform-api 
 go run main.go --log-level trace --kubeconfig  ~/.kube/config server
+
+curl -X POST http://localhost:8080/api/frontendpages -H 'Content-Type: application/json' -d '{"metadata":{"name":"my-page"},"spec":{"contents":"<h1>Hello</h1>","image":"nginx:latest","replicas":2}}'
+curl http://localhost:8080/api/frontendpages
+curl http://localhost:8080/api/frontendpages/my-page
+curl -X PUT http://localhost:8080/api/frontendpages/my-page -H 'Content-Type: application/json' -d '{"spec":{"contents":"<h1>Updated</h1>","image":"nginx:alpine","replicas":1}}'
+curl -X DELETE http://localhost:8080/api/frontendpages/my-page
 ```
+- Visit `http://localhost:8080/swagger/index.html` for interactive API docs.
+
+**What it does:**
+- Exposes CRUD API for FrontendPage resources, backed by Kubernetes CRDs and controller logic.
+- Provides OpenAPI/Swagger docs and UI for easy testing and documentation.
 
 ---
+
 ## Project Structure
 
 - `cmd/` — Contains your CLI commands.
@@ -57,6 +39,7 @@ go run main.go --log-level trace --kubeconfig  ~/.kube/config server
 - `pkg/ctrl` - controller implementation
 - `config/crd` - CRD definition
 - `pkg/apis` - CRD types and deepcopy
+- `pkg/api` - API for PE integration
 
 ## License
 
