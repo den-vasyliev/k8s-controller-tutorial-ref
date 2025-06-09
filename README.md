@@ -4,7 +4,7 @@ A starter template for building Kubernetes controllers or CLI tools in Go using 
 
 ## Prerequisites
 
-- [Go](https://golang.org/dl/) 1.18 or newer
+- [Go](https://golang.org/dl/) 1.24 or newer
 - [cobra-cli](https://github.com/spf13/cobra-cli) installed:
   ```sh
   go install github.com/spf13/cobra-cli@latest
