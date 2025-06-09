@@ -4,6 +4,7 @@ go 1.24.2
 
 require (
 	github.com/buaazp/fasthttprouter v0.1.1
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/mark3labs/mcp-go v0.31.0
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/cobra v1.9.1
