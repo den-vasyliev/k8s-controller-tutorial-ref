@@ -157,12 +157,23 @@ curl http://localhost:8080/deployments
 - Serves a JSON array of deployment names currently in the informer cache.
 - Does not query the Kubernetes API directly for each request (fast, efficient).
 
-**Command history:**
+---
+
+### Request ID Logging and Tracing
+
+- Each HTTP request handled by the FastHTTP server now generates a unique request ID (UUID).
+- The request ID is included in all logs for that request, making it easy to trace and correlate logs.
+- The request ID is also returned in the `X-Request-ID` response header for every HTTP response.
+
+**Example:**
 ```sh
-# updated pkg/informer/informer.go, cmd/server.go
-git add .
-git commit -m "step8: add /deployments JSON API endpoint to server using informer cache"
+curl -i http://localhost:8080/deployments
+# ...
+# X-Request-ID: 123e4567-e89b-12d3-a456-426614174000
+# ...
 ```
+
+This feature improves observability and debugging for all API endpoints.
 
 ---
 
