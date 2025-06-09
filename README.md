@@ -286,35 +286,6 @@ curl -X DELETE http://localhost:8080/api/frontendpages/my-page
 # Update README with API usage examples
 # Commit: "step12: add platform API CRUD endpoints and Swagger docs"
 ```
-
----
-
-## Step 13: MCP Integration (Machine Control Protocol)
-
-- Integrated [MCP server](https://github.com/mark3labs/mcp-go) for programmatic control and automation.
-- Added `--enable-mcp` and `--mcp-port` flags to the server command.
-- MCP server runs in SSE (Server-Sent Events) mode for real-time tool execution and feedback.
-- Registered MCP tools for listing and creating FrontendPage resources (extensible for more tools).
-
-**Usage:**
-```sh
-go run main.go server --enable-mcp --mcp-port 9090
-# MCP server will be available on http://localhost:9090
-```
-- Use an MCP client or compatible tool to connect and invoke registered tools.
-
-**What it does:**
-- Enables external systems to interact with the controller via the MCP protocol (list/create FrontendPages, etc.).
-- SSE mode provides real-time updates for tool execution.
-
-**Command history:**
-```sh
-# Add MCP server integration and flags
-# Register MCP tools for FrontendPage
-# Start MCP server in SSE mode if enabled
-# Commit: "step13: add MCP integration and SSE server mode"
-```
-
 ---
 
 Continue to the next steps for more advanced Kubernetes and controller features! 
