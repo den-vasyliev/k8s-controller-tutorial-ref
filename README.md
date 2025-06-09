@@ -282,4 +282,35 @@ go run main.go server --enable-mcp --mcp-port 9090
 
 ---
 
+## Step 14: JWT Authentication
+
+- Added JWT authentication middleware to protect all `/api/frontendpages` endpoints.
+- Only requests with a valid JWT in the `Authorization: Bearer <token>` header are allowed.
+- Added a `/api/token` endpoint for local testing, which issues a JWT for a test user (valid for 1 hour).
+- Uses a hardcoded secret for development (update for production use).
+
+**Usage:**
+```sh
+# Obtain a JWT token (for dev/testing)
+curl -X POST http://localhost:8080/api/token
+# Response: {"token":"<JWT>"}
+
+# Use the token to access protected endpoints
+TOKEN=$(curl -s -X POST http://localhost:8080/api/token | jq -r .token)
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/frontendpages
+```
+
+**What it does:**
+- Secures the platform API with JWT authentication.
+- Provides a simple way to test authentication locally.
+
+**Command history:**
+```sh
+# Add JWT middleware and protect /api/frontendpages endpoints
+# Add /api/token endpoint for local testing
+# Commit: "step14: add JWT authentication middleware and token endpoint"
+```
+
+---
+
 Continue to the next steps for more advanced Kubernetes and controller features! 

@@ -65,15 +65,16 @@ var serverCmd = &cobra.Command{
 
 		// --- API ROUTER SETUP ---
 		router := fasthttprouter.New()
+		router.POST("/api/token", api.TokenHandler)
 		frontendAPI := &api.FrontendPageAPI{
 			K8sClient: mgr.GetClient(),
 			Namespace: "default", // or make configurable
 		}
-		router.GET("/api/frontendpages", frontendAPI.ListFrontendPages)
-		router.POST("/api/frontendpages", frontendAPI.CreateFrontendPage)
-		router.GET("/api/frontendpages/:name", frontendAPI.GetFrontendPage)
-		router.PUT("/api/frontendpages/:name", frontendAPI.UpdateFrontendPage)
-		router.DELETE("/api/frontendpages/:name", frontendAPI.DeleteFrontendPage)
+		router.GET("/api/frontendpages", api.JWTMiddleware(frontendAPI.ListFrontendPages))
+		router.POST("/api/frontendpages", api.JWTMiddleware(frontendAPI.CreateFrontendPage))
+		router.GET("/api/frontendpages/:name", api.JWTMiddleware(frontendAPI.GetFrontendPage))
+		router.PUT("/api/frontendpages/:name", api.JWTMiddleware(frontendAPI.UpdateFrontendPage))
+		router.DELETE("/api/frontendpages/:name", api.JWTMiddleware(frontendAPI.DeleteFrontendPage))
 
 		// Legacy endpoint for deployments
 		router.GET("/deployments", func(ctx *fasthttp.RequestCtx) {
