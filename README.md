@@ -19,11 +19,6 @@
    ./controller --log-level trace
    ```
 
-3. **Run your CLI (shows help by default):**
-   ```sh
-   ./controller --help
-   ```
-
 ## Project Structure
 
 - `cmd/` — Contains your CLI commands.
