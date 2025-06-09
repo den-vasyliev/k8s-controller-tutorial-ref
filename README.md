@@ -28,6 +28,7 @@ curl http://localhost:8080/deployments
 - `Dockerfile` — Distroless Dockerfile for secure containerization.
 - `.github/workflows/` — GitHub Actions workflows for CI/CD.
 - `list.go` - list cli command
+- `charts/app` - helm chart
 - `pkg/informer` - informer implementation
 - `pkg/testutil` - envtest kit
 
