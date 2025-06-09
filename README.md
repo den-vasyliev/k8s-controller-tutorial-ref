@@ -212,14 +212,6 @@ go run main.go --log-level trace --kubeconfig  ~/.kube/config server
 ```sh
 go run main.go server --enable-leader-election=false --metrics-port=9090
 ```
-
-**Command history:**
-```sh
-# updated cmd/server.go to add leader election and metrics flags
-git add .
-git commit -m "step10: add leader election and metrics flags to controller-runtime manager"
-```
-
 ---
 
 Continue to the next steps for more advanced Kubernetes and controller features! 
