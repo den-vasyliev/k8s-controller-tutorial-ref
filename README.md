@@ -224,7 +224,14 @@ go run main.go server --enable-leader-election=false --metrics-port=9090
   - Creates/updates a ConfigMap containing the `spec.contents` from the FrontendPage CR.
   - Creates/updates a Deployment that mounts the ConfigMap as a volume and uses the image/replicas from the CR spec.
   - Cleans up both the Deployment and ConfigMap when the FrontendPage is deleted.
-- Registered the controller with the manager in `cmd/server.go`.
+- Registered and started the controller with the manager in `cmd/server.go`:
+
+```go
+if err := ctrl.SetupFrontendPageController(mgr); err != nil {
+    log.Error().Err(err).Msg("Failed to add FrontendPage controller")
+    os.Exit(1)
+}
+```
 
 **What it does:**
 - Defines the FrontendPage CRD structure and registers it with the Kubernetes API machinery.
@@ -242,7 +249,6 @@ go run main.go server --enable-leader-election=false --metrics-port=9090
 controller-gen crd:crdVersions=v1 paths=./pkg/apis/... output:crd:dir=./config/crd object paths=./pkg/apis/...
 
 # Scaffold and implement the advanced FrontendPage controller
-mkdir -p pkg/ctrl
 # created pkg/ctrl/frontendpage_controller.go and implemented controller logic for Deployment and ConfigMap management
 # registered the controller in cmd/server.go
 

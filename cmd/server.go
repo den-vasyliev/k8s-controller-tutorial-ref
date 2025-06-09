@@ -46,6 +46,10 @@ var serverCmd = &cobra.Command{
 			log.Error().Err(err).Msg("Failed to add deployment controller")
 			os.Exit(1)
 		}
+		if err := ctrl.SetupFrontendPageController(mgr); err != nil {
+			log.Error().Err(err).Msg("Failed to add FrontendPage controller")
+			os.Exit(1)
+		}
 		go func() {
 			log.Info().Msg("Starting controller-runtime manager...")
 			if err := mgr.Start(cmd.Context()); err != nil {
