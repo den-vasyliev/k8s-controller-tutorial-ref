@@ -1,26 +1,22 @@
-# Platform API (CRUD + Swagger)
+# MCP Integration
 
-- Added RESTful CRUD API endpoints for the FrontendPage CRD using FastHTTP and fasthttprouter.
-- API handlers use the controller-runtime client to create, update, delete, and list FrontendPage resources in Kubernetes, triggering reconciliation.
-- Integrated [Swagger](https://swagger.io/) documentation and served Swagger UI for easy API exploration.
-- All API endpoints are under `/api/frontendpages`.
+- Integrated [MCP (Multi-Cluster Platform)](https://github.com/mark3labs/mcp-go) server into the project.
+- MCP server can be enabled with the `--enable-mcp` flag and runs on a configurable port (default: 9090).
+- MCP server runs alongside the FastHTTP API server and controller-runtime manager.
+- Provides a real-time event stream and management interface for Kubernetes resources via the MCP protocol.
 
 **Usage:**
 ```sh
-git switch feature/step12-platform-api 
-go run main.go --log-level trace --kubeconfig  ~/.kube/config server
+git switch feature/step13-mcp-integration 
 
-curl -X POST http://localhost:8080/api/frontendpages -H 'Content-Type: application/json' -d '{"metadata":{"name":"my-page"},"spec":{"contents":"<h1>Hello</h1>","image":"nginx:latest","replicas":2}}'
-curl http://localhost:8080/api/frontendpages
-curl http://localhost:8080/api/frontendpages/my-page
-curl -X PUT http://localhost:8080/api/frontendpages/my-page -H 'Content-Type: application/json' -d '{"spec":{"contents":"<h1>Updated</h1>","image":"nginx:alpine","replicas":1}}'
-curl -X DELETE http://localhost:8080/api/frontendpages/my-page
+go run main.go server --log-level trace --enable-mcp --mcp-port 9090
+# MCP server will be available on http://localhost:9090
 ```
-- Visit `http://localhost:8080/swagger/index.html` for interactive API docs.
+- Use an MCP client or compatible tool to connect and invoke registered tools.
 
 **What it does:**
-- Exposes CRUD API for FrontendPage resources, backed by Kubernetes CRDs and controller logic.
-- Provides OpenAPI/Swagger docs and UI for easy testing and documentation.
+- Enables external systems to interact with the controller via the MCP protocol (list/create FrontendPages, etc.).
+- SSE mode provides real-time updates for tool execution.
 
 ---
 
@@ -40,6 +36,7 @@ curl -X DELETE http://localhost:8080/api/frontendpages/my-page
 - `config/crd` - CRD definition
 - `pkg/apis` - CRD types and deepcopy
 - `pkg/api` - API for PE integration
+- `cmd/mcp.go` - MCP implementation
 
 ## License
 
