@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/google/uuid"
+	"github.com/buaazp/fasthttprouter"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/valyala/fasthttp"
+	"github.com/yourusername/k8s-controller-tutorial/pkg/api"
 	"github.com/yourusername/k8s-controller-tutorial/pkg/ctrl"
 	"github.com/yourusername/k8s-controller-tutorial/pkg/informer"
 	"k8s.io/client-go/kubernetes"
@@ -16,11 +17,20 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	ctrlruntime "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 )
 
 var serverPort int
 var serverKubeconfig string
 var serverInCluster bool
+var enableLeaderElection bool
+var metricsPort int
+
+type rootFlagsStruct struct {
+	MetricsBindAddress string
+}
+
+var rootFlags = rootFlagsStruct{}
 
 var serverCmd = &cobra.Command{
 	Use:   "server",
@@ -34,18 +44,52 @@ var serverCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		ctx := context.Background()
-		go informer.StartDeploymentInformer(ctx, clientset)
-
-		// Start controller-runtime manager and controller
-		mgr, err := ctrlruntime.NewManager(ctrlruntime.GetConfigOrDie(), manager.Options{})
+		mgr, err := ctrlruntime.NewManager(ctrlruntime.GetConfigOrDie(), manager.Options{
+			LeaderElection:   enableLeaderElection,
+			LeaderElectionID: "k8s-controller-tutorial-leader-election",
+			Metrics:          server.Options{BindAddress: rootFlags.MetricsBindAddress},
+		})
 		if err != nil {
-			log.Error().Err(err).Msg("Failed to create controller-runtime manager")
+			log.Error().Err(err).Msg("Failed to create controller manager")
 			os.Exit(1)
 		}
-		if err := ctrl.AddDeploymentController(mgr); err != nil {
-			log.Error().Err(err).Msg("Failed to add deployment controller")
+
+		// Register FrontendPage controller
+		if err := ctrl.SetupFrontendPageController(mgr); err != nil {
+			log.Error().Err(err).Msg("Failed to set up FrontendPage controller")
 			os.Exit(1)
 		}
+
+		// --- API ROUTER SETUP ---
+		router := fasthttprouter.New()
+		frontendAPI := &api.FrontendPageAPI{
+			K8sClient: mgr.GetClient(),
+			Namespace: "default", // or make configurable
+		}
+		router.GET("/api/frontendpages", frontendAPI.ListFrontendPages)
+		router.POST("/api/frontendpages", frontendAPI.CreateFrontendPage)
+		router.GET("/api/frontendpages/:name", frontendAPI.GetFrontendPage)
+		router.PUT("/api/frontendpages/:name", frontendAPI.UpdateFrontendPage)
+		router.DELETE("/api/frontendpages/:name", frontendAPI.DeleteFrontendPage)
+
+		// Legacy endpoint for deployments
+		router.GET("/deployments", func(ctx *fasthttp.RequestCtx) {
+			ctx.Response.Header.Set("Content-Type", "application/json")
+			deployments := informer.GetDeploymentNames()
+			ctx.SetStatusCode(200)
+			ctx.Write([]byte("["))
+			for i, name := range deployments {
+				ctx.WriteString("\"")
+				ctx.WriteString(name)
+				ctx.WriteString("\"")
+				if i < len(deployments)-1 {
+					ctx.WriteString(",")
+				}
+			}
+			ctx.Write([]byte("]"))
+		})
+
+		go informer.StartDeploymentInformer(ctx, clientset)
 		go func() {
 			log.Info().Msg("Starting controller-runtime manager...")
 			if err := mgr.Start(cmd.Context()); err != nil {
@@ -54,36 +98,9 @@ var serverCmd = &cobra.Command{
 			}
 		}()
 
-		handler := func(ctx *fasthttp.RequestCtx) {
-			requestID := uuid.New().String()
-			ctx.Response.Header.Set("X-Request-ID", requestID)
-			logger := log.With().Str("request_id", requestID).Logger()
-			switch string(ctx.Path()) {
-			case "/deployments":
-				logger.Info().Msg("Deployments request received")
-				ctx.Response.Header.Set("Content-Type", "application/json")
-				deployments := informer.GetDeploymentNames()
-				logger.Info().Msgf("Deployments: %v", deployments)
-				ctx.SetStatusCode(200)
-				ctx.Write([]byte("["))
-				for i, name := range deployments {
-					ctx.WriteString("\"")
-					ctx.WriteString(name)
-					ctx.WriteString("\"")
-					if i < len(deployments)-1 {
-						ctx.WriteString(",")
-					}
-				}
-				ctx.Write([]byte("]"))
-				return
-			default:
-				logger.Info().Msg("Default request received")
-				fmt.Fprintf(ctx, "Hello from FastHTTP!")
-			}
-		}
 		addr := fmt.Sprintf(":%d", serverPort)
-		log.Info().Msgf("Starting FastHTTP server on %s (version: %s)", addr, appVersion)
-		if err := fasthttp.ListenAndServe(addr, handler); err != nil {
+		log.Info().Msgf("Starting FastHTTP server on %s", addr)
+		if err := fasthttp.ListenAndServe(addr, router.Handler); err != nil {
 			log.Error().Err(err).Msg("Error starting FastHTTP server")
 			os.Exit(1)
 		}
@@ -109,4 +126,7 @@ func init() {
 	serverCmd.Flags().IntVar(&serverPort, "port", 8080, "Port to run the server on")
 	serverCmd.Flags().StringVar(&serverKubeconfig, "kubeconfig", "", "Path to the kubeconfig file")
 	serverCmd.Flags().BoolVar(&serverInCluster, "in-cluster", false, "Use in-cluster Kubernetes config")
+	serverCmd.Flags().BoolVar(&enableLeaderElection, "enable-leader-election", true, "Enable leader election for controller manager")
+	serverCmd.Flags().IntVar(&metricsPort, "metrics-port", 8081, "Port for controller manager metrics")
+	rootFlags.MetricsBindAddress = fmt.Sprintf(":%d", metricsPort)
 }

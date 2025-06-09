@@ -1,0 +1,221 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/api/frontendpages": {
+            "get": {
+                "description": "Get all FrontendPage resources",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "frontendpages"
+                ],
+                "summary": "List all FrontendPages",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.FrontendPageListDoc"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new FrontendPage",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "frontendpages"
+                ],
+                "summary": "Create a FrontendPage",
+                "parameters": [
+                    {
+                        "description": "FrontendPage object",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.FrontendPageDoc"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/api.FrontendPageDoc"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/frontendpages/{name}": {
+            "get": {
+                "description": "Get a FrontendPage by name",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "frontendpages"
+                ],
+                "summary": "Get a FrontendPage",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "FrontendPage name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.FrontendPageDoc"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing FrontendPage",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "frontendpages"
+                ],
+                "summary": "Update a FrontendPage",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "FrontendPage name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "FrontendPage object",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.FrontendPageDoc"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.FrontendPageDoc"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a FrontendPage by name",
+                "tags": [
+                    "frontendpages"
+                ],
+                "summary": "Delete a FrontendPage",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "FrontendPage name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "api.FrontendPageDoc": {
+            "description": "FrontendPage resource (Swagger only)",
+            "type": "object",
+            "properties": {
+                "contents": {
+                    "type": "string",
+                    "example": "\u003ch1\u003eHello\u003c/h1\u003e"
+                },
+                "image": {
+                    "type": "string",
+                    "example": "nginx:latest"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "example-page"
+                },
+                "replicas": {
+                    "type": "integer",
+                    "example": 2
+                }
+            }
+        },
+        "api.FrontendPageListDoc": {
+            "description": "List of FrontendPage resources (Swagger only)",
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.FrontendPageDoc"
+                    }
+                }
+            }
+        }
+    }
+}
