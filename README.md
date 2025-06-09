@@ -4,6 +4,24 @@ This project is a step-by-step tutorial for DevOps and SRE engineers to learn ab
 
 ---
 
+## Running Tests
+
+This project uses [envtest](https://book.kubebuilder.io/reference/envtest.html) and [gotestsum](https://github.com/gotestyourself/gotestsum) for robust, CI-friendly testing.
+
+- To run all tests:
+  ```sh
+  make test
+  ```
+  This will automatically download the required Kubernetes API server binaries, set up envtest, and run all tests with gotestsum. A JUnit XML report will be generated as `report.xml`.
+
+- To run tests with coverage:
+  ```sh
+  make test-coverage
+  ```
+  This will generate a coverage report as `coverage.out`.
+
+---
+
 ## Step 1: Golang CLI Application using Cobra
 
 - Initialized a new CLI application using [cobra-cli](https://github.com/spf13/cobra).
@@ -50,20 +68,22 @@ git checkout -b step3-pflag-loglevel
 
 ---
 
-## Step 4: FastHTTP Server Command
+## Step 4: FastHTTP Server Command with Log Level Flag
 
 - Added a new `server` command using [fasthttp](https://github.com/valyala/fasthttp).
 - The command starts a FastHTTP server with a configurable port (default: 8080).
+- Supports the `--log-level` flag for controlling log verbosity.
 - Uses zerolog for logging.
 
 **Usage:**
 ```sh
-go run main.go server --port 8080
+go run main.go server --port 8080 --log-level debug
 ```
 
 **What it does:**
 - Starts a FastHTTP server on the specified port.
 - Responds with "Hello from FastHTTP!" to any request.
+- Respects the log level set by the `--log-level` flag.
 
 **Command history:**
 ```sh
@@ -108,27 +128,16 @@ git commit -m "step6: add list command for Kubernetes deployments using client-g
 
 ## Step 7: Deployment Informer with client-go
 
-- Added a new `informer` command using [k8s.io/client-go](https://github.com/kubernetes/client-go).
-- Runs a shared informer for Deployments in the default namespace.
-- Supports both kubeconfig and in-cluster authentication (flags: `--kubeconfig`, `--in-cluster`).
+- Added a Go function to start a shared informer for Deployments in the default namespace using [k8s.io/client-go](https://github.com/kubernetes/client-go).
+- The function supports both kubeconfig and in-cluster authentication:
+  - If inCluster is true, uses in-cluster config.
+  - If kubeconfig is set, uses the provided path.
+  - One of these must be set; there is no default to `~/.kube/config`.
 - Logs add, update, and delete events for Deployments using zerolog.
-
-**Usage:**
-```sh
-go run main.go informer --kubeconfig ~/.kube/config
-go run main.go informer --in-cluster
-```
 
 **What it does:**
 - Connects to the Kubernetes cluster using the provided kubeconfig file or in-cluster config.
 - Watches for Deployment events (add, update, delete) in the `default` namespace and logs them.
-
-**Command history:**
-```sh
-# created cmd/informer.go, added informer command
-git add .
-git commit -m "step7: add informer command for Kubernetes deployments using client-go"
-```
 
 ---
 
@@ -148,11 +157,39 @@ curl http://localhost:8080/deployments
 - Serves a JSON array of deployment names currently in the informer cache.
 - Does not query the Kubernetes API directly for each request (fast, efficient).
 
-**Command history:**
+---
+
+### Request ID Logging and Tracing
+
+- Each HTTP request handled by the FastHTTP server now generates a unique request ID (UUID).
+- The request ID is included in all logs for that request, making it easy to trace and correlate logs.
+- The request ID is also returned in the `X-Request-ID` response header for every HTTP response.
+
+**Example:**
 ```sh
-# updated pkg/informer/informer.go, cmd/server.go
-git add .
-git commit -m "step8: add /deployments JSON API endpoint to server using informer cache"
+curl -i http://localhost:8080/deployments
+# ...
+# X-Request-ID: 123e4567-e89b-12d3-a456-426614174000
+# ...
+```
+
+This feature improves observability and debugging for all API endpoints.
+
+---
+
+## Step 9: controller-runtime Deployment Controller
+
+- Integrated [controller-runtime](https://github.com/kubernetes-sigs/controller-runtime) into the project.
+- Added a deployment controller that logs each reconcile event for Deployments in the default namespace.
+- The controller is started alongside the FastHTTP server.
+
+**What it does:**
+- Uses controller-runtime's manager to run a controller for Deployments.
+- Logs every reconcile event (creation, update, deletion) for Deployments.
+
+**Usage:**
+```sh
+go run main.go --log-level trace --kubeconfig  ~/.kube/config server
 ```
 
 ---
@@ -175,14 +212,6 @@ git commit -m "step8: add /deployments JSON API endpoint to server using informe
 ```sh
 go run main.go server --enable-leader-election=false --metrics-port=9090
 ```
-
-**Command history:**
-```sh
-# updated cmd/server.go to add leader election and metrics flags
-git add .
-git commit -m "step10: add leader election and metrics flags to controller-runtime manager"
-```
-
 ---
 
 ## Step 11: FrontendPage CRD and Advanced Controller Implementation
@@ -195,7 +224,14 @@ git commit -m "step10: add leader election and metrics flags to controller-runti
   - Creates/updates a ConfigMap containing the `spec.contents` from the FrontendPage CR.
   - Creates/updates a Deployment that mounts the ConfigMap as a volume and uses the image/replicas from the CR spec.
   - Cleans up both the Deployment and ConfigMap when the FrontendPage is deleted.
-- Registered the controller with the manager in `cmd/server.go`.
+- Registered and started the controller with the manager in `cmd/server.go`:
+
+```go
+if err := ctrl.SetupFrontendPageController(mgr); err != nil {
+    log.Error().Err(err).Msg("Failed to add FrontendPage controller")
+    os.Exit(1)
+}
+```
 
 **What it does:**
 - Defines the FrontendPage CRD structure and registers it with the Kubernetes API machinery.
@@ -213,7 +249,6 @@ git commit -m "step10: add leader election and metrics flags to controller-runti
 controller-gen crd:crdVersions=v1 paths=./pkg/apis/... output:crd:dir=./config/crd object paths=./pkg/apis/...
 
 # Scaffold and implement the advanced FrontendPage controller
-mkdir -p pkg/ctrl
 # created pkg/ctrl/frontendpage_controller.go and implemented controller logic for Deployment and ConfigMap management
 # registered the controller in cmd/server.go
 
@@ -251,35 +286,6 @@ curl -X DELETE http://localhost:8080/api/frontendpages/my-page
 # Update README with API usage examples
 # Commit: "step12: add platform API CRUD endpoints and Swagger docs"
 ```
-
----
-
-## Step 13: MCP Integration (Machine Control Protocol)
-
-- Integrated [MCP server](https://github.com/mark3labs/mcp-go) for programmatic control and automation.
-- Added `--enable-mcp` and `--mcp-port` flags to the server command.
-- MCP server runs in SSE (Server-Sent Events) mode for real-time tool execution and feedback.
-- Registered MCP tools for listing and creating FrontendPage resources (extensible for more tools).
-
-**Usage:**
-```sh
-go run main.go server --enable-mcp --mcp-port 9090
-# MCP server will be available on http://localhost:9090
-```
-- Use an MCP client or compatible tool to connect and invoke registered tools.
-
-**What it does:**
-- Enables external systems to interact with the controller via the MCP protocol (list/create FrontendPages, etc.).
-- SSE mode provides real-time updates for tool execution.
-
-**Command history:**
-```sh
-# Add MCP server integration and flags
-# Register MCP tools for FrontendPage
-# Start MCP server in SSE mode if enabled
-# Commit: "step13: add MCP integration and SSE server mode"
-```
-
 ---
 
 Continue to the next steps for more advanced Kubernetes and controller features! 

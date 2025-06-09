@@ -143,12 +143,3 @@ func SetupFrontendPageController(mgr manager.Manager) error {
 			Scheme: mgr.GetScheme(),
 		})
 }
-
-// Helper function to convert *int to *int32
-func int32PtrFromIntPtr(i *int) *int32 {
-	if i == nil {
-		return nil
-	}
-	v := int32(*i)
-	return &v
-}
