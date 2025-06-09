@@ -79,3 +79,20 @@ func TestGetDeploymentName(t *testing.T) {
 		t.Errorf("expected 'unknown', got %q", name)
 	}
 }
+
+func TestStartDeploymentInformer_CoversFunction(t *testing.T) {
+	_, clientset, cleanup := testutil.SetupEnv(t)
+	defer cleanup()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Run StartDeploymentInformer in a goroutine
+	go func() {
+		StartDeploymentInformer(ctx, clientset)
+	}()
+
+	// Give the informer some time to start and process events
+	time.Sleep(1 * time.Second)
+	cancel()
+}
