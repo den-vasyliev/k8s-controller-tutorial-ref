@@ -1,19 +1,20 @@
-# List Kubernetes Deployments with client-go
+# Deployment Informer with client-go
 
-- Added a new `list` command using [k8s.io/client-go](https://github.com/kubernetes/client-go).
-- Lists deployments in the default namespace.
-- Supports a `--kubeconfig` flag to specify the kubeconfig file for authentication.
-- Uses zerolog for error logging.
+- Added a Go function to start a shared informer for Deployments in the default namespace using [k8s.io/client-go](https://github.com/kubernetes/client-go).
+- The function supports both kubeconfig and in-cluster authentication:
+  - If inCluster is true, uses in-cluster config.
+  - If kubeconfig is set, uses the provided path.
+  - One of these must be set; there is no default to `~/.kube/config`.
+- Logs add, update, and delete events for Deployments using zerolog.
 
 **Usage:**
-```sh
-git switch feature/step6-list-deployments 
-go run main.go --log-level debug --kubeconfig ~/.kube/config list
+```bash
+git switch feature/step7-informer
+go run main.go --log-level trace --kubeconfig ~/.kube/config server
 ```
-
 **What it does:**
-- Connects to the Kubernetes cluster using the provided kubeconfig file.
-- Lists all deployments in the `default` namespace and prints their names.
+- Connects to the Kubernetes cluster using the provided kubeconfig file or in-cluster config.
+- Watches for Deployment events (add, update, delete) in the `default` namespace and logs them.
 
 ---
 
@@ -26,6 +27,8 @@ go run main.go --log-level debug --kubeconfig ~/.kube/config list
 - `Dockerfile` — Distroless Dockerfile for secure containerization.
 - `.github/workflows/` — GitHub Actions workflows for CI/CD.
 - `list.go` - list cli command
+- `pkg/informer` - informer implementation
+- `pkg/testutil` - envtest kit
 
 ## License
 
