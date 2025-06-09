@@ -66,3 +66,16 @@ func TestStartDeploymentInformer(t *testing.T) {
 	cancel()
 	wg.Wait()
 }
+
+func TestGetDeploymentName(t *testing.T) {
+	dep := &metav1.PartialObjectMetadata{}
+	dep.SetName("my-deployment")
+	name := getDeploymentName(dep)
+	if name != "my-deployment" {
+		t.Errorf("expected 'my-deployment', got %q", name)
+	}
+	name = getDeploymentName("not-an-object")
+	if name != "unknown" {
+		t.Errorf("expected 'unknown', got %q", name)
+	}
+}
