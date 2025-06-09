@@ -36,7 +36,7 @@ var serverCmd = &cobra.Command{
 			fmt.Fprintf(ctx, "Hello from FastHTTP!")
 		}
 		addr := fmt.Sprintf(":%d", serverPort)
-		log.Info().Msgf("Starting FastHTTP server on %s", addr)
+		log.Info().Msgf("Starting FastHTTP server on %s (version: %s)", addr, appVersion)
 		if err := fasthttp.ListenAndServe(addr, handler); err != nil {
 			log.Error().Err(err).Msg("Error starting FastHTTP server")
 			os.Exit(1)

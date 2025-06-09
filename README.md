@@ -68,20 +68,22 @@ git checkout -b step3-pflag-loglevel
 
 ---
 
-## Step 4: FastHTTP Server Command
+## Step 4: FastHTTP Server Command with Log Level Flag
 
 - Added a new `server` command using [fasthttp](https://github.com/valyala/fasthttp).
 - The command starts a FastHTTP server with a configurable port (default: 8080).
+- Supports the `--log-level` flag for controlling log verbosity.
 - Uses zerolog for logging.
 
 **Usage:**
 ```sh
-go run main.go server --port 8080
+go run main.go server --port 8080 --log-level debug
 ```
 
 **What it does:**
 - Starts a FastHTTP server on the specified port.
 - Responds with "Hello from FastHTTP!" to any request.
+- Respects the log level set by the `--log-level` flag.
 
 **Command history:**
 ```sh

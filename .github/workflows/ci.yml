@@ -15,7 +15,42 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
+      - name: Set version
+        id: vars
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION=${GITHUB_SHA}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
       - name: Build
         run: make build
       - name: Test
-        run: make test 
+        run: make test
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Docker image
+        run: docker build -t ghcr.io/${{ github.repository }}/app:${{ steps.vars.outputs.version }} .
+      - name: Trivy Scan
+        uses: aquasecurity/trivy-action@v0.19.0
+        with:
+          image-ref: ghcr.io/${{ github.repository }}/app:${{ steps.vars.outputs.version }}
+      - name: Push Docker image
+        run: docker push ghcr.io/${{ github.repository }}/app:${{ steps.vars.outputs.version }}
+      - name: Package Helm chart
+        run: |
+          helm package charts/app --version ${{ steps.vars.outputs.version }} --app-version ${{ steps.vars.outputs.version }}
+          mkdir -p chart-artifacts
+          mv app-${{ steps.vars.outputs.version }}.tgz chart-artifacts/
+      - name: Upload Helm chart artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-chart
+          path: chart-artifacts/ 
