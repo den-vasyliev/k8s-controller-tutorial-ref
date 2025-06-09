@@ -288,4 +288,26 @@ curl -X DELETE http://localhost:8080/api/frontendpages/my-page
 ```
 ---
 
+## Step 13: MCP Integration
+
+- Integrated [MCP (Multi-Cluster Platform)](https://github.com/mark3labs/mcp-go) server into the project.
+- MCP server can be enabled with the `--enable-mcp` flag and runs on a configurable port (default: 9090).
+- MCP server runs alongside the FastHTTP API server and controller-runtime manager.
+- Provides a real-time event stream and management interface for Kubernetes resources via the MCP protocol.
+
+**Usage:**
+```sh
+go run main.go server --enable-mcp --mcp-port 9090
+```
+
+**What it does:**
+- Starts an MCP SSE server for real-time resource events and management.
+- Allows integration with MCP clients and dashboards for advanced multi-cluster workflows.
+
+**Command history:**
+```sh
+# Add MCP server integration and CLI flags
+# Commit: "step13: add MCP server integration"
+```
+
 Continue to the next steps for more advanced Kubernetes and controller features! 
