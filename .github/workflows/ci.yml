@@ -3,8 +3,24 @@ name: CI
 on:
   push:
     branches: [ "main", "feature/**" ]
+    paths:
+      - '**.go'
+      - '**.mod'
+      - '**.sum'
+      - 'charts/**'
+      - 'cmd/**'
+      - 'pkg/**'
+      - '.github/workflows/ci.yml'
   pull_request:
     branches: [ "main", "feature/**" ]
+    paths:
+      - '**.go'
+      - '**.mod'
+      - '**.sum'
+      - 'charts/**'
+      - 'cmd/**'
+      - 'pkg/**'
+      - '.github/workflows/ci.yml'
 
 jobs:
   build:
@@ -14,16 +30,23 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.24.2'
       - name: Set version
         id: vars
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
+            APP_VERSION=${VERSION}
+            DOCKER_TAG=${VERSION}
           else
-            VERSION=${GITHUB_SHA}
+            SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-8)
+            VERSION="0.1.0+${GITHUB_SHA}"
+            APP_VERSION=${GITHUB_SHA}
+            DOCKER_TAG="0.1.0-${SHORT_SHA}"
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
+          echo "docker_tag=$DOCKER_TAG" >> $GITHUB_OUTPUT
       - name: Build
         run: make build
       - name: Test
@@ -37,16 +60,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build Docker image
-        run: docker build -t ghcr.io/${{ github.repository }}/app:${{ steps.vars.outputs.version }} .
+        run: docker build -t ghcr.io/${{ github.repository }}/app:${{ steps.vars.outputs.docker_tag }} .
       - name: Trivy Scan
-        uses: aquasecurity/trivy-action@v0.19.0
+        uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: ghcr.io/${{ github.repository }}/app:${{ steps.vars.outputs.version }}
+          image-ref: ghcr.io/${{ github.repository }}/app:${{ steps.vars.outputs.docker_tag }}
       - name: Push Docker image
-        run: docker push ghcr.io/${{ github.repository }}/app:${{ steps.vars.outputs.version }}
+        run: docker push ghcr.io/${{ github.repository }}/app:${{ steps.vars.outputs.docker_tag }}
       - name: Package Helm chart
         run: |
-          helm package charts/app --version ${{ steps.vars.outputs.version }} --app-version ${{ steps.vars.outputs.version }}
+          helm package charts/app --version ${{ steps.vars.outputs.version }} --app-version ${{ steps.vars.outputs.app_version }}
           mkdir -p chart-artifacts
           mv app-${{ steps.vars.outputs.version }}.tgz chart-artifacts/
       - name: Upload Helm chart artifact
