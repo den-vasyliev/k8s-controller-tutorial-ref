@@ -1,23 +1,46 @@
-# Leader Election and Metrics for Controller Manager
+# FrontendPage CRD and Advanced Controller Implementation
 
-- Added leader election support using a Lease resource (enabled by default, can be disabled with a flag).
-- Added a flag to set the metrics port for the controller manager.
-- Both features are configurable via CLI flags.
+- Added the Go type for the FrontendPage custom resource in `pkg/apis/frontend/v1alpha1/frontendpage_types.go`.
+- Created `groupversion_info.go` to define the group, version, and scheme for the CRD.
+- Used [controller-gen](https://github.com/kubernetes-sigs/controller-tools) to generate CRD manifests and deepcopy code.
+- Implemented a controller for the FrontendPage CRD using controller-runtime in `pkg/ctrl/frontendpage_controller.go`.
+- The controller watches FrontendPage resources and manages both a Deployment and a ConfigMap:
+  - Creates/updates a ConfigMap containing the `spec.contents` from the FrontendPage CR.
+  - Creates/updates a Deployment that mounts the ConfigMap as a volume and uses the image/replicas from the CR spec.
+  - Cleans up both the Deployment and ConfigMap when the FrontendPage is deleted.
+- Registered and started the controller with the manager in `cmd/server.go`:
 
-**New flags:**
-- `--enable-leader-election` (default: true) — Enable/disable leader election for the controller manager.
-- `--metrics-port` (default: 8081) — Port for controller manager metrics endpoint.
+```go
+if err := ctrl.SetupFrontendPageController(mgr); err != nil {
+    log.Error().Err(err).Msg("Failed to add FrontendPage controller")
+    os.Exit(1)
+}
+```
 
 **What it does:**
-- Ensures only one instance of the controller manager is active at a time (HA support).
-- Exposes controller metrics on the specified port.
+- Defines the FrontendPage CRD structure and registers it with the Kubernetes API machinery.
+- Generates the CRD YAML and deepcopy methods required for Kubernetes controllers.
+- Reconciles FrontendPage resources to ensure a matching Deployment and ConfigMap exist in the cluster.
+- Updates the Deployment and ConfigMap if the FrontendPage spec changes.
+- Handles creation, update, and cleanup logic for Deployments and ConfigMaps owned by FrontendPage resources.
 
 **Usage:**
 ```sh
-git switch feature/step10-leader-election 
+git switch feature/step11-frontendpage-crd 
+# Add Go types and group version info for FrontendPage (done already)
+# (edit pkg/apis/frontend/v1alpha1/frontendpage_types.go and groupversion_info.go) (done already)
 
-go run main.go server --enable-leader-election=false --metrics-port=9090
+# Run controller-gen to generate CRD and deepcopy code
+controller-gen crd:crdVersions=v1 paths=./pkg/apis/... output:crd:dir=./config/crd object paths=./pkg/apis/...
+
+# Scaffold and implement the advanced FrontendPage controller
+# created pkg/ctrl/frontendpage_controller.go and implemented controller logic for Deployment and ConfigMap management
+# registered the controller in cmd/server.go
+
+# Run the server to start the controller
+go run main.go --log-level trace --kubeconfig  ~/.kube/config server
 ```
+
 ---
 ## Project Structure
 
@@ -32,6 +55,8 @@ go run main.go server --enable-leader-election=false --metrics-port=9090
 - `pkg/informer` - informer implementation
 - `pkg/testutil` - envtest kit
 - `pkg/ctrl` - controller implementation
+- `config/crd` - CRD definition
+- `pkg/apis` - CRD types and deepcopy
 
 ## License
 
