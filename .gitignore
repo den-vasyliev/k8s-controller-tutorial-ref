@@ -1,0 +1,24 @@
+# Binaries
+/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Output
+coverage.out
+coverage.xml
+report.xml
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+
+# Go modules
+vendor/
+
+# Envtest assets
+bin/k8s/ 

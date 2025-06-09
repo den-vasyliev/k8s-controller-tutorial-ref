@@ -16,3 +16,10 @@ func TestServerCommandDefined(t *testing.T) {
 		t.Error("expected 'port' flag to be defined")
 	}
 }
+
+func TestGetServerKubeClient_InvalidPath(t *testing.T) {
+	_, err := getServerKubeClient("/invalid/path", false)
+	if err == nil {
+		t.Error("expected error for invalid kubeconfig path")
+	}
+}
