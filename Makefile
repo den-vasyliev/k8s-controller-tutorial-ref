@@ -5,7 +5,7 @@ ENVTEST ?= $(LOCALBIN)/setup-envtest
 ENVTEST_VERSION ?= latest
 LOCALBIN ?= $(shell pwd)/bin
 
-.PHONY: all build test test-coverage run docker-build clean envtest
+.PHONY: all build test test-coverage run docker-build clean envtest test-controller
 
 all: build
 
@@ -43,6 +43,10 @@ test-coverage: envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use --bin-dir $(LOCALBIN) -p path)" go test -coverprofile=coverage.out -covermode=count ./...
 	go tool cover -func=coverage.out
 	gocover-cobertura < coverage.out > coverage.xml
+
+test-controller: envtest
+	go install gotest.tools/gotestsum@latest
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use --bin-dir $(LOCALBIN) -p path)" gotestsum --junitfile report.xml --format testname ./pkg/ctrl/...
 
 run:
 	go run main.go
