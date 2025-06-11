@@ -14,6 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
+	"github.com/rs/zerolog/log"
 	frontendv1alpha1 "github.com/yourusername/k8s-controller-tutorial/pkg/apis/frontend/v1alpha1"
 )
 
@@ -102,7 +103,7 @@ func (r *FrontendPageReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	var existingCM corev1.ConfigMap
 	cmErr := r.Get(ctx, req.NamespacedName, &existingCM)
 	if cmErr != nil && errors.IsNotFound(cmErr) {
-		if err := r.Create(ctx, cm); err != nil {
+		if err := r.Create(ctx, cm); err != nil && !errors.IsAlreadyExists(err) {
 			return ctrl.Result{}, err
 		}
 	} else if cmErr == nil && !reflect.DeepEqual(existingCM.Data, cm.Data) {
@@ -113,6 +114,7 @@ func (r *FrontendPageReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// 2. Ensure Deployment exists and is up to date
+	log.Info().Msgf("Reconciling Deployment: %s/%s", req.Namespace, req.Name)
 	dep := buildDeployment(&page)
 	if err := ctrl.SetControllerReference(&page, dep, r.Scheme); err != nil {
 		return ctrl.Result{}, err
@@ -120,7 +122,7 @@ func (r *FrontendPageReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	var existingDep appsv1.Deployment
 	depErr := r.Get(ctx, req.NamespacedName, &existingDep)
 	if depErr != nil && errors.IsNotFound(depErr) {
-		if err := r.Create(ctx, dep); err != nil {
+		if err := r.Create(ctx, dep); err != nil && !errors.IsAlreadyExists(err) {
 			return ctrl.Result{}, err
 		}
 	} else if depErr == nil && !reflect.DeepEqual(existingDep.Spec, dep.Spec) {

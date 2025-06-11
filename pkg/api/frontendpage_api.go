@@ -63,7 +63,13 @@ func (api *FrontendPageAPI) ListFrontendPages(ctx *fasthttp.RequestCtx) {
 // @Failure 404 {object} map[string]string
 // @Router /api/frontendpages/{name} [get]
 func (api *FrontendPageAPI) GetFrontendPage(ctx *fasthttp.RequestCtx) {
-	name := ctx.UserValue("name").(string)
+	nameVal := ctx.UserValue("name")
+	if nameVal == nil {
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetBodyString(`{"error":"missing name parameter"}`)
+		return
+	}
+	name := nameVal.(string)
 	obj := &frontendv1alpha1.FrontendPage{}
 	err := api.K8sClient.Get(context.Background(), client.ObjectKey{Namespace: api.Namespace, Name: name}, obj)
 	if err != nil {
@@ -114,7 +120,15 @@ func (api *FrontendPageAPI) CreateFrontendPage(ctx *fasthttp.RequestCtx) {
 // @Failure 400 {object} map[string]string
 // @Router /api/frontendpages/{name} [put]
 func (api *FrontendPageAPI) UpdateFrontendPage(ctx *fasthttp.RequestCtx) {
-	name := ctx.UserValue("name").(string)
+	nameVal := ctx.UserValue("name")
+	if nameVal == nil {
+		// Debug log: print the value of ctx.UserValue("name") and the request URI
+		fmt.Printf("[DEBUG] ctx.UserValue(\"name\"): %v, RequestURI: %s\n", ctx.UserValue("name"), ctx.URI().String())
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetBodyString(`{"error":"missing name parameter"}`)
+		return
+	}
+	name := nameVal.(string)
 	obj := &frontendv1alpha1.FrontendPage{}
 	if err := json.Unmarshal(ctx.PostBody(), obj); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
@@ -141,7 +155,13 @@ func (api *FrontendPageAPI) UpdateFrontendPage(ctx *fasthttp.RequestCtx) {
 // @Failure 404 {object} map[string]string
 // @Router /api/frontendpages/{name} [delete]
 func (api *FrontendPageAPI) DeleteFrontendPage(ctx *fasthttp.RequestCtx) {
-	name := ctx.UserValue("name").(string)
+	nameVal := ctx.UserValue("name")
+	if nameVal == nil {
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetBodyString(`{"error":"missing name parameter"}`)
+		return
+	}
+	name := nameVal.(string)
 	obj := &frontendv1alpha1.FrontendPage{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,

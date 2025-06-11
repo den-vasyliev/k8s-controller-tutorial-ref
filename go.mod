@@ -9,6 +9,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/swaggo/swag v1.16.4
 	github.com/valyala/fasthttp v1.50.0
+	github.com/valyala/fasthttprouter v0.0.0-20160217050331-24073dd8f323
 	k8s.io/api v0.29.0
 	k8s.io/apiextensions-apiserver v0.28.3
 	k8s.io/apimachinery v0.29.0

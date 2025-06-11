@@ -78,3 +78,86 @@ This will:
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
+# FrontendPage API - Test Instructions
+
+## Prerequisites
+- Go 1.20+
+- [kubebuilder test assets](https://book.kubebuilder.io/reference/envtest.html#installing-envtest-binaries) (envtest)
+- The following Go dependencies:
+  - github.com/valyala/fasthttprouter
+  - github.com/google/uuid
+  - github.com/stretchr/testify
+
+Install them with:
+```sh
+go get github.com/valyala/fasthttprouter github.com/google/uuid github.com/stretchr/testify
+```
+
+## Running the API E2E/Integration Tests
+
+1. **Install envtest assets** (if not already):
+   ```sh
+   kubebuilder envtest install
+   # or manually download and set KUBEBUILDER_ASSETS
+   ```
+
+2. **Run the tests:**
+   ```sh
+   go test -v -tags=testtools ./pkg/api
+   ```
+   - The tests will spin up a real Kubernetes API server (envtest), start the controller manager, and exercise the full API (create, update, delete FrontendPage resources).
+   - Each test uses a unique resource name to avoid collisions.
+
+## GitHub Actions: How to Test Frontend API
+
+To test the frontend API in a GitHub Actions workflow:
+
+1. **Set up Go and envtest in your workflow:**
+   ```yaml
+   - uses: actions/checkout@v3
+   - uses: actions/setup-go@v4
+     with:
+       go-version: '1.20'
+   - name: Install envtest tools
+     run: |
+       go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+       setup-envtest use 1.29.0 # or your preferred version
+   ```
+
+2. **Run the tests:**
+   ```yaml
+   - name: Run FrontendPage API tests
+     run: go test -v -tags=testtools ./pkg/api
+   ```
+
+## Example API Test Payload (for local or CI testing)
+
+To test the API endpoints (e.g., with curl, Postman, or a custom script), use the following JSON payloads:
+
+### Create FrontendPage
+```json
+{
+  "metadata": {
+    "name": "test-frontend-page-1234",
+    "namespace": "default"
+  },
+  "spec": {
+    "contents": "<h1>Hello</h1>",
+    "image": "nginx:latest",
+    "replicas": 2
+  }
+}
+```
+
+### Update FrontendPage
+- Fetch the existing resource to get its `resourceVersion`.
+- Use the same structure as above, but include the `resourceVersion` in `metadata` and update the fields you want.
+
+### Delete FrontendPage
+- Send a DELETE request to `/api/frontendpages/{name}`.
+
+## Notes
+- The tests do not require a running Kubernetes cluster; everything runs in-process using envtest.
+- Pods will not become Ready in envtest; tests only check for resource existence and spec.
+- For troubleshooting, check the test logs for API call details and controller reconciliation logs.
