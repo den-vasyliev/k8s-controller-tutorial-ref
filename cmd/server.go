@@ -12,7 +12,9 @@ import (
 	frontendv1alpha1 "github.com/yourusername/k8s-controller-tutorial/pkg/apis/frontend/v1alpha1"
 	"github.com/yourusername/k8s-controller-tutorial/pkg/ctrl"
 	"github.com/yourusername/k8s-controller-tutorial/pkg/informer"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	ctrlruntime "sigs.k8s.io/controller-runtime"
@@ -20,8 +22,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 var serverPort int
@@ -68,8 +68,6 @@ var serverCmd = &cobra.Command{
 			log.Error().Err(err).Msg("Failed to create controller manager")
 			os.Exit(1)
 		}
-		// Register the FrontendPage CRD
-		frontendv1alpha1.AddToScheme(mgr.GetScheme())
 		go informer.StartDeploymentInformer(ctx, clientset)
 		if err := ctrl.SetupFrontendPageController(mgr); err != nil {
 			log.Error().Err(err).Msg("Failed to add FrontendPage controller")
