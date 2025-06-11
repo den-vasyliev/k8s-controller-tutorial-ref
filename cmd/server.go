@@ -75,24 +75,22 @@ var serverCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		go func() {
-			log.Info().Msg("Starting controller-runtime manager...")
-			if err := mgr.Start(cmd.Context()); err != nil {
-				log.Error().Err(err).Msg("Manager exited with error")
-				os.Exit(1)
-			}
-		}()
+		// --- API ROUTER SETUP ---
+		router := fasthttprouter.New()
+		frontendAPI := &api.FrontendPageAPI{
+			K8sClient: mgr.GetClient(),
+			Namespace: "default", // or make configurable
+		}
+		router.GET("/api/frontendpages", frontendAPI.ListFrontendPages)
+		router.POST("/api/frontendpages", frontendAPI.CreateFrontendPage)
+		router.GET("/api/frontendpages/:name", frontendAPI.GetFrontendPage)
+		router.PUT("/api/frontendpages/:name", frontendAPI.UpdateFrontendPage)
+		router.DELETE("/api/frontendpages/:name", frontendAPI.DeleteFrontendPage)
 
-		handler := func(ctx *fasthttp.RequestCtx) {
-			requestID := uuid.New().String()
-			ctx.Response.Header.Set("X-Request-ID", requestID)
-			logger := log.With().Str("request_id", requestID).Logger()
-			switch string(ctx.Path()) {
-			case "/deployments":
-				logger.Info().Msg("Deployments request received")
+		// Legacy endpoint for deployments
+		router.GET("/deployments", func(ctx *fasthttp.RequestCtx) {
 				ctx.Response.Header.Set("Content-Type", "application/json")
 				deployments := informer.GetDeploymentNames()
-				logger.Info().Msgf("Deployments: %v", deployments)
 				ctx.SetStatusCode(200)
 				ctx.Write([]byte("["))
 				for i, name := range deployments {
@@ -104,10 +102,14 @@ var serverCmd = &cobra.Command{
 					}
 				}
 				ctx.Write([]byte("]"))
-				return
-			default:
-				logger.Info().Msg("Default request received")
-				fmt.Fprintf(ctx, "Hello from FastHTTP!")
+		})
+
+		go informer.StartDeploymentInformer(ctx, clientset)
+		go func() {
+			log.Info().Msg("Starting controller-runtime manager...")
+			if err := mgr.Start(cmd.Context()); err != nil {
+				log.Error().Err(err).Msg("Manager exited with error")
+				os.Exit(1)
 			}
 		}()
 
