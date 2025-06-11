@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/valyala/fasthttp"
+	frontendv1alpha1 "github.com/yourusername/k8s-controller-tutorial/pkg/apis/frontend/v1alpha1"
 	"github.com/yourusername/k8s-controller-tutorial/pkg/ctrl"
 	"github.com/yourusername/k8s-controller-tutorial/pkg/informer"
 	"k8s.io/client-go/kubernetes"
@@ -52,7 +53,8 @@ var serverCmd = &cobra.Command{
 			log.Error().Err(err).Msg("Failed to create controller manager")
 			os.Exit(1)
 		}
-
+		// Register the FrontendPage CRD
+		frontendv1alpha1.AddToScheme(mgr.GetScheme())
 		go informer.StartDeploymentInformer(ctx, clientset)
 		if err := ctrl.SetupFrontendPageController(mgr); err != nil {
 			log.Error().Err(err).Msg("Failed to add FrontendPage controller")
