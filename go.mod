@@ -3,6 +3,7 @@ module github.com/yourusername/k8s-controller-tutorial
 go 1.24.2
 
 require (
+	github.com/go-logr/zerologr v1.2.3
 	github.com/google/uuid v1.6.0
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/cobra v1.9.1

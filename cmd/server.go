@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 
+	"github.com/go-logr/zerologr"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -13,6 +13,8 @@ import (
 	"github.com/yourusername/k8s-controller-tutorial/pkg/informer"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
+
+	frontendv1alpha1 "github.com/yourusername/k8s-controller-tutorial/pkg/apis/frontend/v1alpha1"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -21,7 +23,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
-	frontendv1alpha1 "github.com/yourusername/k8s-controller-tutorial/pkg/apis/frontend/v1alpha1"
 )
 
 var serverPort int
@@ -43,13 +44,10 @@ var serverCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		level := parseLogLevel(logLevel)
 		configureLogger(level)
-		clientset, err := getServerKubeClient(serverKubeconfig, serverInCluster)
-		if err != nil {
-			log.Error().Err(err).Msg("Failed to create Kubernetes client")
-			os.Exit(1)
-		}
-		ctx := context.Background()
+
 		logf.SetLogger(zap.New(zap.UseDevMode(true)))
+		logf.SetLogger(zerologr.New(&log.Logger))
+
 		scheme := runtime.NewScheme()
 		if err := clientgoscheme.AddToScheme(scheme); err != nil {
 			log.Error().Err(err).Msg("Failed to add client-go scheme")
@@ -60,27 +58,22 @@ var serverCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		mgr, err := ctrlruntime.NewManager(ctrlruntime.GetConfigOrDie(), manager.Options{
-			Scheme:           scheme,
-			LeaderElection:   enableLeaderElection,
-			LeaderElectionID: "k8s-controller-tutorial-leader-election",
+			Scheme:                  scheme,
+			LeaderElection:          enableLeaderElection,
+			LeaderElectionID:        "k8s-controller-tutorial-leader-election",
 			LeaderElectionNamespace: leaderElectionNamespace,
-			Metrics:          server.Options{BindAddress: rootFlags.MetricsBindAddress},
+			Metrics:                 server.Options{BindAddress: rootFlags.MetricsBindAddress},
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to create controller manager")
 			os.Exit(1)
 		}
 
-		if err := ctrl.AddDeploymentController(mgr); err != nil {
-			log.Error().Err(err).Msg("Failed to add deployment controller")
+		if err := ctrl.AddFrontendController(mgr); err != nil {
+			log.Error().Err(err).Msg("Failed to add frontend controller")
 			os.Exit(1)
 		}
 
-		go informer.StartDeploymentInformer(ctx, clientset)
-		if err := ctrl.SetupFrontendPageController(mgr); err != nil {
-			log.Error().Err(err).Msg("Failed to add FrontendPage controller")
-			os.Exit(1)
-		}
 		go func() {
 			log.Info().Msg("Starting controller-runtime manager...")
 			if err := mgr.Start(cmd.Context()); err != nil {
