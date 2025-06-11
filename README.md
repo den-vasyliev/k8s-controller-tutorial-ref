@@ -9,13 +9,15 @@
 ```sh
 git switch feature/step12-platform-api 
 go run main.go --log-level trace --kubeconfig  ~/.kube/config server --enable-leader-election=0
-
-curl -X POST http://localhost:8080/api/frontendpages -H 'Content-Type: application/json' -d '{"metadata":{"name":"my-page"},"spec":{"contents":"<h1>Hello</h1>","image":"nginx:latest","replicas":2}}'
-curl http://localhost:8080/api/frontendpages
-curl http://localhost:8080/api/frontendpages/my-page
-curl -X PUT http://localhost:8080/api/frontendpages/my-page -H 'Content-Type: application/json' -d '{"spec":{"contents":"<h1>Updated</h1>","image":"nginx:alpine","replicas":1}}'
-curl -X DELETE http://localhost:8080/api/frontendpages/my-page
 ```
+| Method | Endpoint                              | Example Command / Payload                                                                                                                                                                                                                                                                                                                                 | Description                |
+|--------|---------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------|
+| POST   | /api/frontendpages                    | <pre>curl -X POST http://localhost:8080/api/frontendpages \<br>  -H 'Content-Type: application/json' \<br>  -d '{<br>  "metadata": {<br>    "name": "my-page"<br>  },<br>  "spec": {<br>    "contents": "&lt;h1&gt;Hello&lt;/h1&gt;",<br>    "image": "nginx:latest",<br>    "replicas": 2<br>  }<br>}'</pre>                | Create a new FrontendPage  |
+| GET    | /api/frontendpages                    | <pre>curl http://localhost:8080/api/frontendpages</pre>                                                                                                                                                                                                                                                                                                   | List all FrontendPages     |
+| GET    | /api/frontendpages/my-page            | <pre>curl http://localhost:8080/api/frontendpages/my-page</pre>                                                                                                                                                                                                                                                                                           | Get a FrontendPage by name |
+| PUT    | /api/frontendpages/my-page            | <pre>curl -X PUT http://localhost:8080/api/frontendpages/my-page \<br>  -H 'Content-Type: application/json' \<br>  -d '{<br>  "spec": {<br>    "contents": "&lt;h1&gt;Updated&lt;/h1&gt;",<br>    "image": "nginx:alpine",<br>    "replicas": 1<br>  }<br>}'</pre>                                                    | Update a FrontendPage      |
+| DELETE | /api/frontendpages/my-page            | <pre>curl -X DELETE http://localhost:8080/api/frontendpages/my-page</pre>                                                                                                                                                                                                                                                                                | Delete a FrontendPage      |
+
 - Visit `http://localhost:8080/swagger/index.html` for interactive API docs.
 
 **What it does:**
@@ -158,6 +160,25 @@ To test the API endpoints (e.g., with curl, Postman, or a custom script), use th
 - Pods will not become Ready in envtest; tests only check for resource existence and spec.
 - For troubleshooting, check the test logs for API call details and controller reconciliation logs.
 
+
+## Ngrok
+```sh
+curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc \
+  | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null \
+  && echo "deb https://ngrok-agent.s3.amazonaws.com buster main" \
+  | sudo tee /etc/apt/sources.list.d/ngrok.list \
+  && sudo apt update \
+  && sudo apt install ngrok
+  ```
+### Configure API key
+```sh
+ngrok config add-authtoken xxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+### Run proxy
+```sh
+ngrok http --url=quietly-just-ferret.ngrok-free.app 8080
+```
 
 ## License
 
