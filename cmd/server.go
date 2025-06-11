@@ -3,9 +3,8 @@ package cmd
 import (
 	"fmt"
 	"os"
-
+	"github.com/buaazp/fasthttprouter"
 	"github.com/go-logr/zerologr"
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/valyala/fasthttp"
@@ -89,22 +88,21 @@ var serverCmd = &cobra.Command{
 
 		// Legacy endpoint for deployments
 		router.GET("/deployments", func(ctx *fasthttp.RequestCtx) {
-				ctx.Response.Header.Set("Content-Type", "application/json")
-				deployments := informer.GetDeploymentNames()
-				ctx.SetStatusCode(200)
-				ctx.Write([]byte("["))
-				for i, name := range deployments {
-					ctx.WriteString("\"")
-					ctx.WriteString(name)
-					ctx.WriteString("\"")
-					if i < len(deployments)-1 {
-						ctx.WriteString(",")
-					}
+			ctx.Response.Header.Set("Content-Type", "application/json")
+			deployments := informer.GetDeploymentNames()
+			ctx.SetStatusCode(200)
+			ctx.Write([]byte("["))
+			for i, name := range deployments {
+				ctx.WriteString("\"")
+				ctx.WriteString(name)
+				ctx.WriteString("\"")
+				if i < len(deployments)-1 {
+					ctx.WriteString(",")
 				}
-				ctx.Write([]byte("]"))
+			}
+			ctx.Write([]byte("]"))
 		})
 
-		go informer.StartDeploymentInformer(ctx, clientset)
 		go func() {
 			log.Info().Msg("Starting controller-runtime manager...")
 			if err := mgr.Start(cmd.Context()); err != nil {

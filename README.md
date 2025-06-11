@@ -8,7 +8,7 @@
 **Usage:**
 ```sh
 git switch feature/step12-platform-api 
-go run main.go --log-level trace --kubeconfig  ~/.kube/config server
+go run main.go --log-level trace --kubeconfig  ~/.kube/config server --enable-leader-election=0
 
 curl -X POST http://localhost:8080/api/frontendpages -H 'Content-Type: application/json' -d '{"metadata":{"name":"my-page"},"spec":{"contents":"<h1>Hello</h1>","image":"nginx:latest","replicas":2}}'
 curl http://localhost:8080/api/frontendpages
@@ -74,10 +74,6 @@ This will:
 - `config/crd` - CRD definition
 - `pkg/apis` - CRD types and deepcopy
 - `pkg/api` - API for PE integration
-
-## License
-
-MIT License. See [LICENSE](LICENSE) for details.
 
 # FrontendPage API - Test Instructions
 
@@ -161,3 +157,8 @@ To test the API endpoints (e.g., with curl, Postman, or a custom script), use th
 - The tests do not require a running Kubernetes cluster; everything runs in-process using envtest.
 - Pods will not become Ready in envtest; tests only check for resource existence and spec.
 - For troubleshooting, check the test logs for API call details and controller reconciliation logs.
+
+
+## License
+
+MIT License. See [LICENSE](LICENSE) for details.

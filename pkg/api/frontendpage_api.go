@@ -98,6 +98,8 @@ func (api *FrontendPageAPI) CreateFrontendPage(ctx *fasthttp.RequestCtx) {
 		ctx.SetBodyString(fmt.Sprintf(`{"error":"%v"}`, err))
 		return
 	}
+	// Set namespace before creation
+	obj.Namespace = api.Namespace
 	if err := api.K8sClient.Create(context.Background(), obj); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 		ctx.SetBodyString(fmt.Sprintf(`{"error":"%v"}`, err))
@@ -122,28 +124,39 @@ func (api *FrontendPageAPI) CreateFrontendPage(ctx *fasthttp.RequestCtx) {
 func (api *FrontendPageAPI) UpdateFrontendPage(ctx *fasthttp.RequestCtx) {
 	nameVal := ctx.UserValue("name")
 	if nameVal == nil {
-		// Debug log: print the value of ctx.UserValue("name") and the request URI
-		fmt.Printf("[DEBUG] ctx.UserValue(\"name\"): %v, RequestURI: %s\n", ctx.UserValue("name"), ctx.URI().String())
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetBodyString(`{"error":"missing name parameter"}`)
 		return
 	}
 	name := nameVal.(string)
-	obj := &frontendv1alpha1.FrontendPage{}
-	if err := json.Unmarshal(ctx.PostBody(), obj); err != nil {
+
+	// Fetch the existing object to get the current resourceVersion
+	existing := &frontendv1alpha1.FrontendPage{}
+	err := api.K8sClient.Get(context.Background(), client.ObjectKey{Namespace: api.Namespace, Name: name}, existing)
+	if err != nil {
+		ctx.SetStatusCode(fasthttp.StatusNotFound)
+		ctx.SetBodyString(fmt.Sprintf(`{"error":"%v"}`, err))
+		return
+	}
+
+	// Unmarshal the new spec and update only the Spec fields
+	var patch struct {
+		Spec frontendv1alpha1.FrontendPageSpec `json:"spec"`
+	}
+	if err := json.Unmarshal(ctx.PostBody(), &patch); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetBodyString(fmt.Sprintf(`{"error":"%v"}`, err))
 		return
 	}
-	obj.Name = name
-	obj.Namespace = api.Namespace
-	if err := api.K8sClient.Update(context.Background(), obj); err != nil {
+	existing.Spec = patch.Spec
+
+	if err := api.K8sClient.Update(context.Background(), existing); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 		ctx.SetBodyString(fmt.Sprintf(`{"error":"%v"}`, err))
 		return
 	}
 	ctx.SetContentType("application/json")
-	json.NewEncoder(ctx).Encode(obj)
+	json.NewEncoder(ctx).Encode(existing)
 }
 
 // DeleteFrontendPage godoc
