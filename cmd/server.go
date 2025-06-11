@@ -23,6 +23,7 @@ var serverPort int
 var serverKubeconfig string
 var serverInCluster bool
 var enableLeaderElection bool
+var leaderElectionNamespace string
 var metricsPort int
 
 type rootFlagsStruct struct {
@@ -46,6 +47,7 @@ var serverCmd = &cobra.Command{
 		mgr, err := ctrlruntime.NewManager(ctrlruntime.GetConfigOrDie(), manager.Options{
 			LeaderElection:   enableLeaderElection,
 			LeaderElectionID: "k8s-controller-tutorial-leader-election",
+			LeaderElectionNamespace: leaderElectionNamespace,
 			Metrics:          server.Options{BindAddress: rootFlags.MetricsBindAddress},
 		})
 		if err != nil {
@@ -123,6 +125,7 @@ func init() {
 	serverCmd.Flags().StringVar(&serverKubeconfig, "kubeconfig", "", "Path to the kubeconfig file")
 	serverCmd.Flags().BoolVar(&serverInCluster, "in-cluster", false, "Use in-cluster Kubernetes config")
 	serverCmd.Flags().BoolVar(&enableLeaderElection, "enable-leader-election", true, "Enable leader election for controller manager")
+	serverCmd.Flags().StringVar(&leaderElectionNamespace, "leader-election-namespace", "default", "Namespace for leader election")
 	serverCmd.Flags().IntVar(&metricsPort, "metrics-port", 8081, "Port for controller manager metrics")
 	rootFlags.MetricsBindAddress = fmt.Sprintf(":%d", metricsPort)
 }
