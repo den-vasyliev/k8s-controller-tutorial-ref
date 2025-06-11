@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/valyala/fasthttp"
+	"github.com/yourusername/k8s-controller-tutorial/pkg/ctrl"
 	"github.com/yourusername/k8s-controller-tutorial/pkg/informer"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -49,6 +50,11 @@ var serverCmd = &cobra.Command{
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to create controller manager")
+			os.Exit(1)
+		}
+
+		if err := ctrl.AddDeploymentController(mgr); err != nil {
+			log.Error().Err(err).Msg("Failed to add deployment controller")
 			os.Exit(1)
 		}
 
