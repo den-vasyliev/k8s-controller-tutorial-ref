@@ -54,18 +54,27 @@ func adaptHandler(h func(ctx *fasthttp.RequestCtx)) fasthttprouter.Handle {
 func setupTestAPIWithManager(t *testing.T) (*FrontendPageAPI, client.Client, func()) {
 	mgr, k8sClient, _, cleanup := testutil.StartTestManager(t)
 
-	require.NoError(t, myctrl.SetupFrontendPageController(mgr))
-	require.NoError(t, myctrl.AddDeploymentController(mgr))
+	require.NoError(t, myctrl.AddFrontendController(mgr))
 
+	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
-		_ = mgr.Start(context.Background())
+		_ = mgr.Start(ctx)
 	}()
+
+	// Wait for the cache to sync before returning
+	if ok := mgr.GetCache().WaitForCacheSync(ctx); !ok {
+		cancel()
+		t.Fatal("cache did not sync")
+	}
 
 	api := &FrontendPageAPI{
 		K8sClient: k8sClient,
 		Namespace: "default",
 	}
-	return api, k8sClient, cleanup
+	return api, k8sClient, func() {
+		cancel()
+		cleanup()
+	}
 }
 
 func doRequest(router *fasthttprouter.Router, method, uri string, body []byte) *fasthttp.Response {

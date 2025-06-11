@@ -100,7 +100,7 @@ go get github.com/valyala/fasthttprouter github.com/google/uuid github.com/stret
 
 2. **Run the tests:**
    ```sh
-   go test -v -tags=testtools ./pkg/api
+   go test -v -tags=testtools ./pkg/api  -tags=testtools
    ```
    - The tests will spin up a real Kubernetes API server (envtest), start the controller manager, and exercise the full API (create, update, delete FrontendPage resources).
    - Each test uses a unique resource name to avoid collisions.
