@@ -3,6 +3,7 @@ package ctrl
 import (
 	context "context"
 	"reflect"
+	"github.com/rs/zerolog/log"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -82,6 +83,7 @@ func (r *FrontendPageReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	if err != nil {
 		if client.IgnoreNotFound(err) == nil {
 			// FrontendPage deleted: clean up resources
+			log.Info().Msgf("FrontendPage deleted: %s %s", req.Name, req.Namespace)
 			var cm corev1.ConfigMap
 			cm.Name = req.Name
 			cm.Namespace = req.Namespace
@@ -100,6 +102,7 @@ func (r *FrontendPageReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	if err := ctrl.SetControllerReference(&page, cm, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
+	log.Info().Msgf("Reconciling ConfigMap for FrontendPage: %s %s",cm.Name, cm.Namespace)
 	var existingCM corev1.ConfigMap
 	cmErr := r.Get(ctx, req.NamespacedName, &existingCM)
 	if cmErr != nil && errors.IsNotFound(cmErr) {
@@ -119,23 +122,37 @@ func (r *FrontendPageReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	if err := ctrl.SetControllerReference(&page, dep, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
+	log.Info().Msgf("Reconciling Deployment for FrontendPage: %s %s", dep.Name, dep.Namespace)
 	var existingDep appsv1.Deployment
 	depErr := r.Get(ctx, req.NamespacedName, &existingDep)
 	if depErr != nil && errors.IsNotFound(depErr) {
 		if err := r.Create(ctx, dep); err != nil && !errors.IsAlreadyExists(err) {
 			return ctrl.Result{}, err
 		}
-	} else if depErr == nil && !reflect.DeepEqual(existingDep.Spec, dep.Spec) {
-		existingDep.Spec = dep.Spec
-		if err := r.Update(ctx, &existingDep); err != nil {
-			return ctrl.Result{}, err
+	} else if depErr == nil {
+		updated := false
+		if *existingDep.Spec.Replicas != *dep.Spec.Replicas {
+			existingDep.Spec.Replicas = dep.Spec.Replicas
+			updated = true
+		}
+		if existingDep.Spec.Template.Spec.Containers[0].Image != dep.Spec.Template.Spec.Containers[0].Image {
+			existingDep.Spec.Template.Spec.Containers[0].Image = dep.Spec.Template.Spec.Containers[0].Image
+			updated = true
+		}
+		if updated {
+			if err := r.Update(ctx, &existingDep); err != nil {
+				if errors.IsConflict(err) {
+					// Requeue to try again with the latest version
+					return ctrl.Result{Requeue: true}, nil
+				}
+				return ctrl.Result{}, err
+			}
 		}
 	}
-
 	return ctrl.Result{}, nil
 }
 
-func SetupFrontendPageController(mgr manager.Manager) error {
+func AddFrontendController(mgr manager.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&frontendv1alpha1.FrontendPage{}).
 		Owns(&appsv1.Deployment{}).
