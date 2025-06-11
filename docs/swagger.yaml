@@ -1,0 +1,146 @@
+definitions:
+  api.FrontendPageDoc:
+    description: FrontendPage resource (Swagger only)
+    properties:
+      contents:
+        example: <h1>Hello</h1>
+        type: string
+      image:
+        example: nginx:latest
+        type: string
+      name:
+        example: example-page
+        type: string
+      replicas:
+        example: 2
+        type: integer
+    type: object
+  api.FrontendPageListDoc:
+    description: List of FrontendPage resources (Swagger only)
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api.FrontendPageDoc'
+        type: array
+    type: object
+info:
+  contact: {}
+paths:
+  /api/frontendpages:
+    get:
+      description: Get all FrontendPage resources
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.FrontendPageListDoc'
+      summary: List all FrontendPages
+      tags:
+      - frontendpages
+    post:
+      consumes:
+      - application/json
+      description: Create a new FrontendPage
+      parameters:
+      - description: FrontendPage object
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.FrontendPageDoc'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.FrontendPageDoc'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a FrontendPage
+      tags:
+      - frontendpages
+  /api/frontendpages/{name}:
+    delete:
+      description: Delete a FrontendPage by name
+      parameters:
+      - description: FrontendPage name
+        in: path
+        name: name
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a FrontendPage
+      tags:
+      - frontendpages
+    get:
+      description: Get a FrontendPage by name
+      parameters:
+      - description: FrontendPage name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.FrontendPageDoc'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a FrontendPage
+      tags:
+      - frontendpages
+    put:
+      consumes:
+      - application/json
+      description: Update an existing FrontendPage
+      parameters:
+      - description: FrontendPage name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: FrontendPage object
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.FrontendPageDoc'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.FrontendPageDoc'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a FrontendPage
+      tags:
+      - frontendpages
+swagger: "2.0"

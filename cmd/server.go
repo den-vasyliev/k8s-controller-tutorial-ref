@@ -9,18 +9,26 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/valyala/fasthttp"
-	"github.com/yourusername/k8s-controller-tutorial/pkg/ctrl"
 	"github.com/yourusername/k8s-controller-tutorial/pkg/informer"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	ctrlruntime "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 )
 
 var serverPort int
 var serverKubeconfig string
 var serverInCluster bool
+var enableLeaderElection bool
+var metricsPort int
+
+type rootFlagsStruct struct {
+	MetricsBindAddress string
+}
+
+var rootFlags = rootFlagsStruct{}
 
 var serverCmd = &cobra.Command{
 	Use:   "server",
@@ -34,18 +42,17 @@ var serverCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		ctx := context.Background()
-		go informer.StartDeploymentInformer(ctx, clientset)
-
-		// Start controller-runtime manager and controller
-		mgr, err := ctrlruntime.NewManager(ctrlruntime.GetConfigOrDie(), manager.Options{})
+		mgr, err := ctrlruntime.NewManager(ctrlruntime.GetConfigOrDie(), manager.Options{
+			LeaderElection:   enableLeaderElection,
+			LeaderElectionID: "k8s-controller-tutorial-leader-election",
+			Metrics:          server.Options{BindAddress: rootFlags.MetricsBindAddress},
+		})
 		if err != nil {
-			log.Error().Err(err).Msg("Failed to create controller-runtime manager")
+			log.Error().Err(err).Msg("Failed to create controller manager")
 			os.Exit(1)
 		}
-		if err := ctrl.AddDeploymentController(mgr); err != nil {
-			log.Error().Err(err).Msg("Failed to add deployment controller")
-			os.Exit(1)
-		}
+
+		go informer.StartDeploymentInformer(ctx, clientset)
 		if err := ctrl.SetupFrontendPageController(mgr); err != nil {
 			log.Error().Err(err).Msg("Failed to add FrontendPage controller")
 			os.Exit(1)
@@ -113,4 +120,7 @@ func init() {
 	serverCmd.Flags().IntVar(&serverPort, "port", 8080, "Port to run the server on")
 	serverCmd.Flags().StringVar(&serverKubeconfig, "kubeconfig", "", "Path to the kubeconfig file")
 	serverCmd.Flags().BoolVar(&serverInCluster, "in-cluster", false, "Use in-cluster Kubernetes config")
+	serverCmd.Flags().BoolVar(&enableLeaderElection, "enable-leader-election", true, "Enable leader election for controller manager")
+	serverCmd.Flags().IntVar(&metricsPort, "metrics-port", 8081, "Port for controller manager metrics")
+	rootFlags.MetricsBindAddress = fmt.Sprintf(":%d", metricsPort)
 }
