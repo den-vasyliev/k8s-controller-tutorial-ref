@@ -9,7 +9,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/valyala/fasthttp"
-	frontendv1alpha1 "github.com/yourusername/k8s-controller-tutorial/pkg/apis/frontend/v1alpha1"
 	"github.com/yourusername/k8s-controller-tutorial/pkg/ctrl"
 	"github.com/yourusername/k8s-controller-tutorial/pkg/informer"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -28,6 +27,7 @@ var serverPort int
 var serverKubeconfig string
 var serverInCluster bool
 var enableLeaderElection bool
+var leaderElectionNamespace string
 var metricsPort int
 
 type rootFlagsStruct struct {
@@ -62,12 +62,19 @@ var serverCmd = &cobra.Command{
 			Scheme:           scheme,
 			LeaderElection:   enableLeaderElection,
 			LeaderElectionID: "k8s-controller-tutorial-leader-election",
+			LeaderElectionNamespace: leaderElectionNamespace,
 			Metrics:          server.Options{BindAddress: rootFlags.MetricsBindAddress},
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to create controller manager")
 			os.Exit(1)
 		}
+
+		if err := ctrl.AddDeploymentController(mgr); err != nil {
+			log.Error().Err(err).Msg("Failed to add deployment controller")
+			os.Exit(1)
+		}
+
 		go informer.StartDeploymentInformer(ctx, clientset)
 		if err := ctrl.SetupFrontendPageController(mgr); err != nil {
 			log.Error().Err(err).Msg("Failed to add FrontendPage controller")
@@ -137,6 +144,7 @@ func init() {
 	serverCmd.Flags().StringVar(&serverKubeconfig, "kubeconfig", "", "Path to the kubeconfig file")
 	serverCmd.Flags().BoolVar(&serverInCluster, "in-cluster", false, "Use in-cluster Kubernetes config")
 	serverCmd.Flags().BoolVar(&enableLeaderElection, "enable-leader-election", true, "Enable leader election for controller manager")
+	serverCmd.Flags().StringVar(&leaderElectionNamespace, "leader-election-namespace", "default", "Namespace for leader election")
 	serverCmd.Flags().IntVar(&metricsPort, "metrics-port", 8081, "Port for controller manager metrics")
 	rootFlags.MetricsBindAddress = fmt.Sprintf(":%d", metricsPort)
 }
