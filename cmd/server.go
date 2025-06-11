@@ -20,6 +20,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 var serverPort int
@@ -47,8 +49,17 @@ var serverCmd = &cobra.Command{
 		}
 		ctx := context.Background()
 		logf.SetLogger(zap.New(zap.UseDevMode(true)))
-
+		scheme := runtime.NewScheme()
+		if err := clientgoscheme.AddToScheme(scheme); err != nil {
+			log.Error().Err(err).Msg("Failed to add client-go scheme")
+			os.Exit(1)
+		}
+		if err := frontendv1alpha1.AddToScheme(scheme); err != nil {
+			log.Error().Err(err).Msg("Failed to add FrontendPage scheme")
+			os.Exit(1)
+		}
 		mgr, err := ctrlruntime.NewManager(ctrlruntime.GetConfigOrDie(), manager.Options{
+			Scheme:           scheme,
 			LeaderElection:   enableLeaderElection,
 			LeaderElectionID: "k8s-controller-tutorial-leader-election",
 			Metrics:          server.Options{BindAddress: rootFlags.MetricsBindAddress},
