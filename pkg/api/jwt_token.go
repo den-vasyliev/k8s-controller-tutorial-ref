@@ -14,7 +14,7 @@ func TokenHandler(ctx *fasthttp.RequestCtx) {
 		"exp": time.Now().Add(time.Hour).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(jwtSecret))
+	tokenString, err := token.SignedString([]byte(JWTSecret))
 	if err != nil {
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 		ctx.SetBodyString(`{"error":"could not generate token"}`)

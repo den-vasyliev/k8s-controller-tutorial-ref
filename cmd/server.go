@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/buaazp/fasthttprouter"
 	"github.com/go-logr/zerologr"
 	mcpserver "github.com/mark3labs/mcp-go/server"
@@ -13,7 +15,6 @@ import (
 	"github.com/yourusername/k8s-controller-tutorial/pkg/informer"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
-	"os"
 
 	frontendv1alpha1 "github.com/yourusername/k8s-controller-tutorial/pkg/apis/frontend/v1alpha1"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -35,6 +36,7 @@ var metricsPort int
 var enableMCP bool
 var mcpPort int
 var FrontendAPI *api.FrontendPageAPI
+var jwtSecret string
 
 type rootFlagsStruct struct {
 	MetricsBindAddress string
@@ -109,6 +111,9 @@ var serverCmd = &cobra.Command{
 			ctx.Write([]byte("]"))
 		})
 
+		// Set the JWT secret for the API package
+		api.JWTSecret = jwtSecret
+
 		go func() {
 			log.Info().Msg("Starting controller-runtime manager...")
 			if err := mgr.Start(cmd.Context()); err != nil {
@@ -164,5 +169,6 @@ func init() {
 	serverCmd.Flags().IntVar(&metricsPort, "metrics-port", 8081, "Port for controller manager metrics")
 	serverCmd.Flags().BoolVar(&enableMCP, "enable-mcp", false, "Enable MCP server")
 	serverCmd.Flags().IntVar(&mcpPort, "mcp-port", 9090, "Port for MCP server")
+	serverCmd.Flags().StringVar(&jwtSecret, "jwt-secret", "", "Secret key for signing JWT tokens (required)")
 	rootFlags.MetricsBindAddress = fmt.Sprintf(":%d", metricsPort)
 }

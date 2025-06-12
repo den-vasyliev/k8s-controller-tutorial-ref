@@ -7,7 +7,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-const jwtSecret = "dev-secret-key" // Use env/config in production
+var JWTSecret string
 
 // JWTMiddleware is a FastHTTP middleware that checks for a valid JWT in the Authorization header.
 func JWTMiddleware(next fasthttp.RequestHandler) fasthttp.RequestHandler {
@@ -20,7 +20,7 @@ func JWTMiddleware(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 		}
 		tokenString := strings.TrimPrefix(header, "Bearer ")
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return []byte(jwtSecret), nil
+			return []byte(JWTSecret), nil
 		})
 		if err != nil || !token.Valid {
 			ctx.SetStatusCode(fasthttp.StatusUnauthorized)
