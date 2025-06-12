@@ -34,6 +34,7 @@ var leaderElectionNamespace string
 var metricsPort int
 var enableMCP bool
 var mcpPort int
+var FrontendAPI *api.FrontendPageAPI
 
 type rootFlagsStruct struct {
 	MetricsBindAddress string
@@ -83,6 +84,7 @@ var serverCmd = &cobra.Command{
 			K8sClient: mgr.GetClient(),
 			Namespace: "default", // or make configurable
 		}
+		api.FrontendAPI = frontendAPI
 		router.GET("/api/frontendpages", frontendAPI.ListFrontendPages)
 		router.POST("/api/frontendpages", frontendAPI.CreateFrontendPage)
 		router.GET("/api/frontendpages/:name", frontendAPI.GetFrontendPage)
