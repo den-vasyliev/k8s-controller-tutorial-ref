@@ -3,6 +3,7 @@ package testutil
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -26,6 +27,7 @@ import (
 func StartTestManager(t *testing.T) (mgr manager.Manager, k8sClient client.Client, restCfg *rest.Config, cleanup func()) {
 	t.Helper()
 	testScheme := runtime.NewScheme()
+	var err error
 
 	// Add the core Kubernetes schemes
 	require.NoError(t, scheme.AddToScheme(testScheme))
@@ -36,14 +38,16 @@ func StartTestManager(t *testing.T) (mgr manager.Manager, k8sClient client.Clien
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	// Use CRD_PATH env var if set, otherwise default to '../../config/crd/'
+
+	var startErr = make(chan error)
+	var cfg *rest.Config
+
 	env := &envtest.Environment{
-		CRDDirectoryPaths:        []string{"../../config/crd/"},
+		CRDDirectoryPaths:        []string{os.Getenv("CRD_PATH")},
 		ErrorIfCRDPathMissing:    true,
 		AttachControlPlaneOutput: false,
 	}
-	var startErr = make(chan error)
-	var cfg *rest.Config
-	var err error
 
 	go func() {
 		cfg, err = env.Start()
@@ -98,16 +102,22 @@ func SetupEnv(t *testing.T) (*envtest.Environment, *kubernetes.Clientset, func()
 	err = apiextensionsv1.AddToScheme(testScheme)
 	require.NoError(t, err)
 
+	// Use CRD_PATH env var if set, otherwise default to '../../config/crd/'
+	crdAbsPath := os.Getenv("CRD_PATH")
+	if crdAbsPath == "" {
+		crdAbsPath = "../../config/crd/"
+	}
+
+	var startErr = make(chan error)
+	var cfg *rest.Config
+
 	env := &envtest.Environment{
 		CRDDirectoryPaths: []string{
-			"../../config/crd/",
+			crdAbsPath,
 		},
 		ErrorIfCRDPathMissing:    true,
 		AttachControlPlaneOutput: false,
 	}
-	var startErr = make(chan error)
-	var cfg *rest.Config
-
 	go func() {
 		cfg, err = env.Start()
 		startErr <- err

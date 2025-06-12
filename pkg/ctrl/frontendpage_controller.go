@@ -2,8 +2,8 @@ package ctrl
 
 import (
 	context "context"
-	"reflect"
 	"github.com/rs/zerolog/log"
+	"reflect"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -101,7 +101,7 @@ func (r *FrontendPageReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	if err := ctrl.SetControllerReference(&page, cm, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
-	log.Info().Msgf("Reconciling ConfigMap for FrontendPage: %s %s",cm.Name, cm.Namespace)
+	log.Info().Msgf("Reconciling ConfigMap for FrontendPage: %s %s", cm.Name, cm.Namespace)
 	var existingCM corev1.ConfigMap
 	cmErr := r.Get(ctx, req.NamespacedName, &existingCM)
 	if cmErr != nil && errors.IsNotFound(cmErr) {
