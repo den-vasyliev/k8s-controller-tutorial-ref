@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
+	"github.com/yourusername/k8s-controller-tutorial/pkg/api"
 )
 
 // NewMCPServer creates and configures a new MCP server for FrontendPage tools
@@ -39,8 +42,18 @@ func NewMCPServer(serverName, version string) *server.MCPServer {
 }
 
 func listFrontendPagesHandler(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	// TODO: Integrate with your API logic to list FrontendPages
-	return mcp.NewToolResultText("List of FrontendPages (stub)"), nil
+	if api.FrontendAPI == nil {
+		return mcp.NewToolResultText("FrontendAPI is not initialized"), nil
+	}
+	docs, err := api.FrontendAPI.ListFrontendPagesRaw(ctx)
+	if err != nil {
+		return mcp.NewToolResultText(fmt.Sprintf("Error listing FrontendPages: %v", err)), nil
+	}
+	jsonBytes, err := json.MarshalIndent(docs, "", "  ")
+	if err != nil {
+		return mcp.NewToolResultText(fmt.Sprintf("Error marshaling result: %v", err)), nil
+	}
+	return mcp.NewToolResultText(string(jsonBytes)), nil
 }
 
 func createFrontendPageHandler(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
