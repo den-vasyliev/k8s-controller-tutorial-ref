@@ -41,7 +41,7 @@ test: envtest
 
 test-coverage: envtest
 	go install github.com/boumenot/gocover-cobertura@latest
-	CRD_PATH="${PWD}/config/crd/" KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use --bin-dir $(LOCALBIN) -p path)" go test -coverprofile=coverage.out -covermode=count ./...
+	CRD_PATH="${PWD}/config/crd/" KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use --bin-dir $(LOCALBIN) -p path)" go test -coverprofile=coverage.out -covermode=count ./... ${TEST_ARGS}
 	go tool cover -func=coverage.out
 	gocover-cobertura < coverage.out > coverage.xml
 

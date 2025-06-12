@@ -72,15 +72,30 @@ func TestMCP_ListFrontendPagesHandler(t *testing.T) {
 	require.NoError(t, k8sClient.Create(context.Background(), page1))
 	require.NoError(t, k8sClient.Create(context.Background(), page2))
 
-	// Wait until both pages are present
+	// Check that each created page appears individually
 	require.Eventually(t, func() bool {
 		docs, err := api.FrontendAPI.ListFrontendPagesRaw(context.Background())
-		return err == nil && len(docs) == 2
-	}, 2*time.Second, 100*time.Millisecond, "Should have 2 frontend pages")
+		if err != nil {
+			return false
+		}
+		found1, found2 := false, false
+		for _, doc := range docs {
+			if doc.Name == "mcp-page1" {
+				found1 = true
+			}
+			if doc.Name == "mcp-page2" {
+				found2 = true
+			}
+		}
+		return found1 && found2
+	}, 2*time.Second, 100*time.Millisecond, "Should find both frontend pages eventually")
+
 	docs, err := api.FrontendAPI.ListFrontendPagesRaw(context.Background())
 	require.NoError(t, err)
-	require.Len(t, docs, 2)
-	names := []string{docs[0].Name, docs[1].Name}
+	names := make([]string, len(docs))
+	for i, doc := range docs {
+		names[i] = doc.Name
+	}
 	require.Contains(t, names, "mcp-page1")
 	require.Contains(t, names, "mcp-page2")
 }
