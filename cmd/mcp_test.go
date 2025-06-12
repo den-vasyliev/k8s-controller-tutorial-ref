@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/yourusername/k8s-controller-tutorial/pkg/api"
@@ -71,7 +72,11 @@ func TestMCP_ListFrontendPagesHandler(t *testing.T) {
 	require.NoError(t, k8sClient.Create(context.Background(), page1))
 	require.NoError(t, k8sClient.Create(context.Background(), page2))
 
-	// Call the shared API logic directly (since MCP handler is not accessible)
+	// Wait until both pages are present
+	require.Eventually(t, func() bool {
+		docs, err := api.FrontendAPI.ListFrontendPagesRaw(context.Background())
+		return err == nil && len(docs) == 2
+	}, 2*time.Second, 100*time.Millisecond, "Should have 2 frontend pages")
 	docs, err := api.FrontendAPI.ListFrontendPagesRaw(context.Background())
 	require.NoError(t, err)
 	require.Len(t, docs, 2)

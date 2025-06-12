@@ -36,7 +36,7 @@ build:
 
 test: envtest
 	go install gotest.tools/gotestsum@latest
-	CRD_PATH="${PWD}/config/crd/" KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use --bin-dir $(LOCALBIN) -p path)" gotestsum --junitfile report.xml --format testname ./pkg/... ${TEST_ARGS}
+	CRD_PATH="${PWD}/config/crd/" KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use --bin-dir $(LOCALBIN) -p path)" gotestsum --junitfile report.xml --format testname ./... ${TEST_ARGS}
 
 
 test-coverage: envtest
