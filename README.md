@@ -5,10 +5,19 @@
 - Added a `/api/token` endpoint for local testing, which issues a JWT for a test user (valid for 1 hour).
 - Uses a hardcoded secret for development (update for production use).
 
+## Running with JWT Secret
+
+To start the server with a custom JWT secret, use the `--jwt-secret` flag:
+
+```sh
+go run main.go --log-level trace --kubeconfig  ~/.kube/config server --enable-leader-election=0 --jwt-secret "your-strong-secret"
+```
+This secret will be used for signing and validating JWT tokens. Make sure to use a strong, unique value in production environments.
+
 **Usage:**
 ```sh
 git switch feature/step14-jwt-auth
-go run main.go --log-level trace --kubeconfig  ~/.kube/config server
+go run main.go --log-level trace --kubeconfig  ~/.kube/config server --enable-leader-election=0
 # Obtain a JWT token (for dev/testing)
 curl -X POST http://localhost:8080/api/token
 # Response: {"token":"<JWT>"}
@@ -46,3 +55,4 @@ curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/frontendpages
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
