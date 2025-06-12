@@ -1,48 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites tests="8" failures="0" errors="0" time="11.526855">
-	<testsuite tests="0" failures="0" time="0.000000" name="github.com/yourusername/k8s-controller-tutorial" timestamp="2025-06-09T20:51:18+01:00">
+<testsuites tests="6" failures="0" errors="0" time="22.296969">
+	<testsuite tests="0" failures="0" time="0.000000" name="github.com/yourusername/k8s-controller-tutorial/pkg/api" timestamp="2025-06-12T13:47:16+01:00">
 		<properties>
 			<property name="go.version" value="go1.24.2 darwin/arm64"></property>
 		</properties>
 	</testsuite>
-	<testsuite tests="4" failures="0" time="0.479000" name="github.com/yourusername/k8s-controller-tutorial/cmd" timestamp="2025-06-09T20:51:20+01:00">
-		<properties>
-			<property name="go.version" value="go1.24.2 darwin/arm64"></property>
-		</properties>
-		<testcase classname="github.com/yourusername/k8s-controller-tutorial/cmd" name="TestGetKubeClient_InvalidPath" time="0.000000"></testcase>
-		<testcase classname="github.com/yourusername/k8s-controller-tutorial/cmd" name="TestParseLogLevel" time="0.000000"></testcase>
-		<testcase classname="github.com/yourusername/k8s-controller-tutorial/cmd" name="TestServerCommandDefined" time="0.000000"></testcase>
-		<testcase classname="github.com/yourusername/k8s-controller-tutorial/cmd" name="TestGetServerKubeClient_InvalidPath" time="0.000000"></testcase>
-	</testsuite>
-	<testsuite tests="0" failures="0" time="0.000000" name="github.com/yourusername/k8s-controller-tutorial/docs" timestamp="2025-06-09T20:51:20+01:00">
+	<testsuite tests="0" failures="0" time="0.000000" name="github.com/yourusername/k8s-controller-tutorial/pkg/apis/frontend/v1alpha1" timestamp="2025-06-12T13:47:16+01:00">
 		<properties>
 			<property name="go.version" value="go1.24.2 darwin/arm64"></property>
 		</properties>
 	</testsuite>
-	<testsuite tests="0" failures="0" time="0.000000" name="github.com/yourusername/k8s-controller-tutorial/pkg/api" timestamp="2025-06-09T20:51:20+01:00">
+	<testsuite tests="2" failures="0" time="16.938000" name="github.com/yourusername/k8s-controller-tutorial/pkg/ctrl" timestamp="2025-06-12T13:47:21+01:00">
 		<properties>
 			<property name="go.version" value="go1.24.2 darwin/arm64"></property>
 		</properties>
+		<testcase classname="github.com/yourusername/k8s-controller-tutorial/pkg/ctrl" name="TestDeploymentReconciler_BasicFlow" time="6.900000"></testcase>
+		<testcase classname="github.com/yourusername/k8s-controller-tutorial/pkg/ctrl" name="TestFrontendPageReconciler_CreateFlow" time="9.620000"></testcase>
 	</testsuite>
-	<testsuite tests="0" failures="0" time="0.000000" name="github.com/yourusername/k8s-controller-tutorial/pkg/apis/frontend/v1alpha1" timestamp="2025-06-09T20:51:20+01:00">
+	<testsuite tests="3" failures="0" time="11.036000" name="github.com/yourusername/k8s-controller-tutorial/pkg/informer" timestamp="2025-06-12T13:47:21+01:00">
 		<properties>
 			<property name="go.version" value="go1.24.2 darwin/arm64"></property>
 		</properties>
-	</testsuite>
-	<testsuite tests="0" failures="0" time="0.000000" name="github.com/yourusername/k8s-controller-tutorial/pkg/ctrl" timestamp="2025-06-09T20:51:20+01:00">
-		<properties>
-			<property name="go.version" value="go1.24.2 darwin/arm64"></property>
-		</properties>
-	</testsuite>
-	<testsuite tests="3" failures="0" time="9.434000" name="github.com/yourusername/k8s-controller-tutorial/pkg/informer" timestamp="2025-06-09T20:51:20+01:00">
-		<properties>
-			<property name="go.version" value="go1.24.2 darwin/arm64"></property>
-		</properties>
-		<testcase classname="github.com/yourusername/k8s-controller-tutorial/pkg/informer" name="TestStartDeploymentInformer" time="4.080000"></testcase>
+		<testcase classname="github.com/yourusername/k8s-controller-tutorial/pkg/informer" name="TestStartDeploymentInformer" time="5.530000"></testcase>
 		<testcase classname="github.com/yourusername/k8s-controller-tutorial/pkg/informer" name="TestGetDeploymentName" time="0.000000"></testcase>
-		<testcase classname="github.com/yourusername/k8s-controller-tutorial/pkg/informer" name="TestStartDeploymentInformer_CoversFunction" time="4.250000"></testcase>
+		<testcase classname="github.com/yourusername/k8s-controller-tutorial/pkg/informer" name="TestStartDeploymentInformer_CoversFunction" time="4.870000"></testcase>
 	</testsuite>
-	<testsuite tests="1" failures="0" time="0.745000" name="github.com/yourusername/k8s-controller-tutorial/pkg/testutil" timestamp="2025-06-09T20:51:20+01:00">
+	<testsuite tests="1" failures="0" time="0.001000" name="github.com/yourusername/k8s-controller-tutorial/pkg/testutil" timestamp="2025-06-12T13:47:21+01:00">
 		<properties>
 			<property name="go.version" value="go1.24.2 darwin/arm64"></property>
 		</properties>

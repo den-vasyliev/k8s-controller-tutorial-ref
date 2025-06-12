@@ -2,10 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"github.com/buaazp/fasthttprouter"
-	mcpserver "github.com/mark3labs/mcp-go/server"
 	"github.com/go-logr/zerologr"
+	mcpserver "github.com/mark3labs/mcp-go/server"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/valyala/fasthttp"
@@ -14,6 +13,7 @@ import (
 	"github.com/yourusername/k8s-controller-tutorial/pkg/informer"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
+	"os"
 
 	frontendv1alpha1 "github.com/yourusername/k8s-controller-tutorial/pkg/apis/frontend/v1alpha1"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
