@@ -35,7 +35,7 @@ func TestStartDeploymentInformer(t *testing.T) {
 	)
 	informer := factory.Apps().V1().Deployments().Informer()
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
+		AddFunc: func(obj any) {
 			if d, ok := obj.(metav1.Object); ok {
 				added <- d.GetName()
 			}
@@ -65,6 +65,9 @@ func TestStartDeploymentInformer(t *testing.T) {
 
 	cancel()
 	wg.Wait()
+
+	t.Log("Sleeping for 5 minutes to allow manual kubectl inspection of envtest cluster...")
+	time.Sleep(5 * time.Minute)
 }
 
 func TestGetDeploymentName(t *testing.T) {

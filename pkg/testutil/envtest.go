@@ -3,6 +3,7 @@ package testutil
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -10,6 +11,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
 
@@ -22,6 +25,27 @@ func SetupEnv(t *testing.T) (*envtest.Environment, *kubernetes.Clientset, func()
 	cfg, err := env.Start()
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
+
+	// Write kubeconfig to /tmp/envtest.kubeconfig
+	kubeconfig := clientcmdapi.NewConfig()
+	kubeconfig.Clusters["envtest"] = &clientcmdapi.Cluster{
+		Server:                   cfg.Host,
+		CertificateAuthorityData: cfg.CAData,
+	}
+	kubeconfig.AuthInfos["envtest-user"] = &clientcmdapi.AuthInfo{
+		ClientCertificateData: cfg.CertData,
+		ClientKeyData:         cfg.KeyData,
+	}
+	kubeconfig.Contexts["envtest-context"] = &clientcmdapi.Context{
+		Cluster:  "envtest",
+		AuthInfo: "envtest-user",
+	}
+	kubeconfig.CurrentContext = "envtest-context"
+
+	kubeconfigBytes, err := clientcmd.Write(*kubeconfig)
+	require.NoError(t, err)
+	err = os.WriteFile("/tmp/envtest.kubeconfig", kubeconfigBytes, 0644)
+	require.NoError(t, err)
 
 	clientset, err := kubernetes.NewForConfig(cfg)
 	require.NoError(t, err)
