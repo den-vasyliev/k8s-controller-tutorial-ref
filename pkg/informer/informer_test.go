@@ -66,8 +66,8 @@ func TestStartDeploymentInformer(t *testing.T) {
 	cancel()
 	wg.Wait()
 
-	t.Log("Sleeping for 5 minutes to allow manual kubectl inspection of envtest cluster...")
-	time.Sleep(5 * time.Minute)
+	//t.Log("Sleeping for 5 minutes to allow manual kubectl inspection of envtest cluster...")
+	//time.Sleep(5 * time.Minute)
 }
 
 func TestGetDeploymentName(t *testing.T) {
