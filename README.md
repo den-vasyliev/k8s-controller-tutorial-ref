@@ -31,6 +31,20 @@ go run main.go --log-level trace --kubeconfig ~/.kube/config server
 - `pkg/informer` - informer implementation
 - `pkg/testutil` - envtest kit
 
+## Informer Test Coverage
+
+The file `pkg/informer/informer_test.go` contains three main test functions:
+
+1. **TestStartDeploymentInformer**
+   - Tests the deployment informer event handling and ensures deployment add events are captured.
+2. **TestGetDeploymentName**
+   - Unit test for the `getDeploymentName` utility, checking both valid and invalid input cases.
+3. **TestStartDeploymentInformer_CoversFunction**
+   - Ensures the `StartDeploymentInformer` function runs without error.
+
+Each test runs independently when executing `go test ./pkg/informer`. This provides coverage for both informer event handling and utility logic.
+
+
 ## Testing with envtest and Inspecting with kubectl
 
 This project uses [envtest](https://book.kubebuilder.io/reference/envtest.html) to spin up a local Kubernetes API server for integration tests. The test environment writes a kubeconfig to `/tmp/envtest.kubeconfig` so you can inspect the in-memory cluster with `kubectl` while tests are running.
@@ -61,7 +75,6 @@ This project uses [envtest](https://book.kubebuilder.io/reference/envtest.html) 
 ---
 
 For more details, see the code in `pkg/testutil/envtest.go` and `pkg/informer/informer_test.go`.
-
 
 ## License
 
