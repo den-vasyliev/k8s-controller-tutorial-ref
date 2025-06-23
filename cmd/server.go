@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+
 	"github.com/buaazp/fasthttprouter"
 	"github.com/go-logr/zerologr"
 	"github.com/rs/zerolog/log"
@@ -32,12 +33,6 @@ var enableLeaderElection bool
 var leaderElectionNamespace string
 var metricsPort int
 
-type rootFlagsStruct struct {
-	MetricsBindAddress string
-}
-
-var rootFlags = rootFlagsStruct{}
-
 var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Start a FastHTTP server and deployment informer",
@@ -62,7 +57,7 @@ var serverCmd = &cobra.Command{
 			LeaderElection:          enableLeaderElection,
 			LeaderElectionID:        "k8s-controller-tutorial-leader-election",
 			LeaderElectionNamespace: leaderElectionNamespace,
-			Metrics:                 server.Options{BindAddress: rootFlags.MetricsBindAddress},
+			Metrics:                 server.Options{BindAddress: fmt.Sprintf(":%d", metricsPort)},
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to create controller manager")
@@ -142,5 +137,4 @@ func init() {
 	serverCmd.Flags().BoolVar(&enableLeaderElection, "enable-leader-election", true, "Enable leader election for controller manager")
 	serverCmd.Flags().StringVar(&leaderElectionNamespace, "leader-election-namespace", "default", "Namespace for leader election")
 	serverCmd.Flags().IntVar(&metricsPort, "metrics-port", 8081, "Port for controller manager metrics")
-	rootFlags.MetricsBindAddress = fmt.Sprintf(":%d", metricsPort)
 }
