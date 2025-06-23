@@ -3,9 +3,10 @@ package cmd
 import (
 	"fmt"
 	"os"
+
 	"github.com/buaazp/fasthttprouter"
-	mcpserver "github.com/mark3labs/mcp-go/server"
 	"github.com/go-logr/zerologr"
+	mcpserver "github.com/mark3labs/mcp-go/server"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/valyala/fasthttp"
@@ -36,12 +37,6 @@ var enableMCP bool
 var mcpPort int
 var FrontendAPI *api.FrontendPageAPI
 
-type rootFlagsStruct struct {
-	MetricsBindAddress string
-}
-
-var rootFlags = rootFlagsStruct{}
-
 var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Start a FastHTTP server and deployment informer",
@@ -66,7 +61,7 @@ var serverCmd = &cobra.Command{
 			LeaderElection:          enableLeaderElection,
 			LeaderElectionID:        "k8s-controller-tutorial-leader-election",
 			LeaderElectionNamespace: leaderElectionNamespace,
-			Metrics:                 server.Options{BindAddress: rootFlags.MetricsBindAddress},
+			Metrics:                 server.Options{BindAddress: fmt.Sprintf(":%d", metricsPort)},
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to create controller manager")
@@ -163,5 +158,4 @@ func init() {
 	serverCmd.Flags().IntVar(&metricsPort, "metrics-port", 8081, "Port for controller manager metrics")
 	serverCmd.Flags().BoolVar(&enableMCP, "enable-mcp", false, "Enable MCP server")
 	serverCmd.Flags().IntVar(&mcpPort, "mcp-port", 9090, "Port for MCP server")
-	rootFlags.MetricsBindAddress = fmt.Sprintf(":%d", metricsPort)
 }
