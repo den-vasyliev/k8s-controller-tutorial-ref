@@ -38,12 +38,6 @@ var mcpPort int
 var FrontendAPI *api.FrontendPageAPI
 var jwtSecret string
 
-type rootFlagsStruct struct {
-	MetricsBindAddress string
-}
-
-var rootFlags = rootFlagsStruct{}
-
 var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Start a FastHTTP server and deployment informer",
@@ -68,7 +62,7 @@ var serverCmd = &cobra.Command{
 			LeaderElection:          enableLeaderElection,
 			LeaderElectionID:        "k8s-controller-tutorial-leader-election",
 			LeaderElectionNamespace: leaderElectionNamespace,
-			Metrics:                 server.Options{BindAddress: rootFlags.MetricsBindAddress},
+			Metrics:                 server.Options{BindAddress: fmt.Sprintf(":%d", metricsPort)},
 		})
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to create controller manager")
@@ -170,5 +164,4 @@ func init() {
 	serverCmd.Flags().BoolVar(&enableMCP, "enable-mcp", false, "Enable MCP server")
 	serverCmd.Flags().IntVar(&mcpPort, "mcp-port", 9090, "Port for MCP server")
 	serverCmd.Flags().StringVar(&jwtSecret, "jwt-secret", "", "Secret key for signing JWT tokens (required)")
-	rootFlags.MetricsBindAddress = fmt.Sprintf(":%d", metricsPort)
 }
